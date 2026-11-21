@@ -1,0 +1,6 @@
+# Normalize line endings so Windows checkouts behave the same as CI.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary

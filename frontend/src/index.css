@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
+
+  --color-ink-950: #060a13;
+  --color-ink-900: #0a101c;
+  --color-ink-850: #0d1423;
+  --color-ink-800: #111a2c;
+  --color-ink-700: #18233a;
+  --color-ink-600: #22304c;
+  --color-ink-500: #33435f;
+  --color-ink-400: #5b6b88;
+  --color-ink-300: #8b99b3;
+  --color-ink-200: #b9c3d6;
+  --color-ink-100: #e2e8f2;
+
+  --color-accent-300: #93c5fd;
+  --color-accent-400: #60a5fa;
+  --color-accent-500: #3b82f6;
+  --color-accent-600: #2563eb;
+
+  --color-sev-critical: #f43f5e;
+  --color-sev-high: #f97316;
+  --color-sev-medium: #eab308;
+  --color-sev-low: #38bdf8;
+  --color-sev-info: #94a3b8;
+
+  --animate-fade-in: fade-in 0.35s ease-out both;
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer base {
+  html { color-scheme: dark; }
+  body {
+    @apply bg-ink-950 font-sans text-ink-100 antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  ::selection { background: color-mix(in oklab, var(--color-accent-500) 40%, transparent); }
+  :focus-visible { outline: 2px solid var(--color-accent-400); outline-offset: 2px; }
+  code, pre, kbd { @apply font-mono; }
+  /* Grid items default to min-width:auto, so long unbreakable content (hashes, code, charts) would
+     widen the track past the viewport on small screens. Let tracks shrink; children truncate/scroll. */
+  .grid > * { min-width: 0; }
+  * { scrollbar-width: thin; scrollbar-color: var(--color-ink-600) transparent; }
+}
+
+@utility card {
+  @apply rounded-xl border border-ink-700/70 bg-ink-900/80 shadow-[0_1px_0_0_rgba(255,255,255,0.03)_inset];
+}
+
+@utility grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

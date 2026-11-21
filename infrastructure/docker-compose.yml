@@ -1,0 +1,95 @@
+# API Sentinel stack: PostgreSQL + Python analyzer + Spring Boot backend + React frontend (nginx).
+#
+# Secrets come from the repository-root .env file (git-ignored), passed with --env-file.
+# scripts/demo-backend.ps1 creates it with random values on first run. Every secret below uses
+# ${VAR:?} so Compose refuses to start when one is missing instead of falling back to a default.
+#
+# Only the frontend (3000) and the backend API (8080) are published, and only on 127.0.0.1.
+# PostgreSQL and the analyzer are reachable solely on the internal network.
+name: apisentinel
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-apisentinel}
+      POSTGRES_USER: ${POSTGRES_USER:-apisentinel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  analyzer:
+    build:
+      context: ..
+      dockerfile: analyzer/Dockerfile
+      target: runtime
+    image: apisentinel-analyzer:latest
+    restart: unless-stopped
+    environment:
+      APISENTINEL_INTERNAL_TOKEN: ${APISENTINEL_INTERNAL_TOKEN:?APISENTINEL_INTERNAL_TOKEN must be set in .env}
+      APISENTINEL_MAX_SPEC_MB: ${APISENTINEL_MAX_SPEC_MB:-5}
+      APISENTINEL_LOG_LEVEL: ${APISENTINEL_LOG_LEVEL:-INFO}
+      APISENTINEL_ENABLE_DOCS: "false"
+    networks: [internal]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      target: runtime
+    image: apisentinel-backend:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      analyzer:
+        condition: service_healthy
+    environment:
+      APISENTINEL_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-apisentinel}
+      APISENTINEL_DB_USER: ${POSTGRES_USER:-apisentinel}
+      APISENTINEL_DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      APISENTINEL_JWT_SECRET: ${APISENTINEL_JWT_SECRET:?APISENTINEL_JWT_SECRET must be set in .env}
+      APISENTINEL_INTERNAL_TOKEN: ${APISENTINEL_INTERNAL_TOKEN:?APISENTINEL_INTERNAL_TOKEN must be set in .env}
+      APISENTINEL_ANALYZER_URL: http://analyzer:8081
+    ports:
+      - "127.0.0.1:${APISENTINEL_BACKEND_PORT:-8080}:8080"
+    networks: [internal]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      target: runtime
+    image: apisentinel-frontend:latest
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${APISENTINEL_FRONTEND_PORT:-3000}:8080"
+    networks: [internal]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  internal:
+
+volumes:
+  pgdata:

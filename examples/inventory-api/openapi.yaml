@@ -1,0 +1,199 @@
+openapi: 3.1.0
+info:
+  title: Inventory API
+  version: 2.3.0
+  description: Product catalogue and warehouse stock. Used to demonstrate contract-test generation.
+servers:
+  - url: https://inventory.example.com/api
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok, degraded]
+  /products:
+    get:
+      operationId: listProducts
+      security: []
+      parameters:
+        - name: category
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Category'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Matching products
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  total:
+                    type: integer
+                    minimum: 0
+    post:
+      operationId: createProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProduct'
+            example:
+              sku: BK-042
+              name: Designing Data-Intensive Applications
+              price: 39.5
+              category: books
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /products/{sku}:
+    get:
+      operationId: getProduct
+      security: []
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}-\d{3}$'
+          example: BK-001
+      responses:
+        '200':
+          description: The product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Unknown SKU
+  /warehouses/{warehouseId}/stock:
+    get:
+      operationId: getStock
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          schema:
+            type: string
+          examples:
+            pune:
+              value: WH-PUNE-1
+      responses:
+        '200':
+          description: Stock levels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StockLevel'
+  /reports/stock.csv:
+    get:
+      operationId: exportStock
+      security: []
+      responses:
+        '200':
+          description: CSV export
+          content:
+            text/csv:
+              schema:
+                type: string
+  /search:
+    get:
+      operationId: searchProducts
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Category:
+      type: string
+      enum: [books, electronics, toys]
+    NewProduct:
+      type: object
+      required: [sku, name, price, category]
+      properties:
+        sku:
+          type: string
+          pattern: '^[A-Z]{2}-\d{3}$'
+        name:
+          type: string
+          minLength: 1
+        price:
+          type: number
+          minimum: 0
+        category:
+          $ref: '#/components/schemas/Category'
+        tags:
+          type: array
+          items:
+            type: string
+    Product:
+      allOf:
+        - $ref: '#/components/schemas/NewProduct'
+        - type: object
+          required: [createdAt]
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+            discontinuedAt:
+              type: [string, 'null']
+              format: date-time
+    StockLevel:
+      type: object
+      required: [sku, quantity]
+      properties:
+        sku:
+          type: string
+        quantity:
+          type: integer
+          minimum: 0

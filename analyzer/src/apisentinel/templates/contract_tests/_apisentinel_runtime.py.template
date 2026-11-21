@@ -1,0 +1,122 @@
+"""HTTP client and data loading for the API Sentinel generated contract tests.
+
+Generated file: do not edit; regenerate from the specification instead.
+Uses only the standard library for HTTP so the suite needs just pytest and jsonschema.
+"""
+
+from __future__ import annotations
+
+import base64
+import json
+import os
+import pathlib
+import urllib.error
+import urllib.parse
+import urllib.request
+from dataclasses import dataclass
+from typing import Any
+
+import pytest
+
+DATA: dict[str, Any] = json.loads(
+    (pathlib.Path(__file__).parent / "operations.json").read_text(encoding="utf-8")
+)
+
+
+@dataclass
+class Response:
+    status: int
+    headers: dict[str, str]
+    body: bytes
+
+    @property
+    def content_type(self) -> str:
+        return self.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+
+    def json(self) -> Any:
+        try:
+            return json.loads(self.body.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            preview = self.body[:200].decode("utf-8", "replace")
+            pytest.fail(f"Response body is not valid JSON ({exc}): {preview!r}", pytrace=False)
+
+
+def _serialize(value: Any, style: str, explode: bool) -> list[str] | str:
+    """Return repeated values (form+explode arrays) or one joined string."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, list):
+        items = ["true" if v is True else "false" if v is False else str(v) for v in value]
+        if style == "form" and explode:
+            return items
+        separator = {"spaceDelimited": " ", "pipeDelimited": "|"}.get(style, ",")
+        return separator.join(items)
+    return str(value)
+
+
+class ApiClient:
+    def __init__(self, base_url: str, timeout: float) -> None:
+        self.base_url = base_url
+        self.timeout = timeout
+        self.token = os.environ.get("APISENTINEL_AUTH_TOKEN")
+
+    def _auth(self, operation: dict[str, Any], headers: dict[str, str], query: list[Any]) -> None:
+        auth = operation.get("auth")
+        if not auth:
+            return
+        if not self.token:
+            pytest.skip(
+                f"requires authentication (scheme '{auth['scheme']}'); "
+                "set APISENTINEL_AUTH_TOKEN to run it"
+            )
+        kind = auth["kind"]
+        if kind == "bearer":
+            headers["Authorization"] = f"Bearer {self.token}"
+        elif kind == "basic":
+            encoded = base64.b64encode(self.token.encode("utf-8")).decode("ascii")
+            headers["Authorization"] = f"Basic {encoded}"
+        elif kind == "apiKey" and auth["in"] == "header":
+            headers[auth["name"]] = self.token
+        elif kind == "apiKey" and auth["in"] == "query":
+            query.append((auth["name"], self.token))
+        elif kind == "apiKey" and auth["in"] == "cookie":
+            cookie = headers.get("Cookie")
+            pair = f"{auth['name']}={self.token}"
+            headers["Cookie"] = f"{cookie}; {pair}" if cookie else pair
+
+    def send(self, operation: dict[str, Any]) -> Response:
+        request = operation["request"]
+        path = operation["path"]
+        for name, spec in request["path"].items():
+            value = _serialize(spec["value"], "simple", spec["explode"])
+            path = path.replace("{" + name + "}", urllib.parse.quote(str(value), safe=""))
+        query: list[Any] = []
+        for name, spec in request["query"].items():
+            value = _serialize(spec["value"], spec["style"], spec["explode"])
+            if isinstance(value, list):
+                query.extend((name, v) for v in value)
+            else:
+                query.append((name, value))
+        headers = {"Accept": "application/json, */*;q=0.5"}
+        for name, spec in request["header"].items():
+            headers[name] = str(_serialize(spec["value"], "simple", spec["explode"]))
+        cookies = [f"{n}={_serialize(s['value'], 'form', False)}" for n, s in request["cookie"].items()]
+        if cookies:
+            headers["Cookie"] = "; ".join(cookies)
+        self._auth(operation, headers, query)
+
+        data = None
+        if request["hasBody"]:
+            data = json.dumps(request["body"]).encode("utf-8")
+            headers["Content-Type"] = request["contentType"]
+        url = self.base_url + path
+        if query:
+            url += "?" + urllib.parse.urlencode(query)
+        req = urllib.request.Request(url, data=data, headers=headers, method=operation["method"])
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as raw:  # noqa: S310
+                return Response(raw.status, {k.lower(): v for k, v in raw.headers.items()}, raw.read())
+        except urllib.error.HTTPError as err:
+            return Response(err.code, {k.lower(): v for k, v in err.headers.items()}, err.read())
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as err:
+            pytest.fail(f"Could not reach {url}: {err}", pytrace=False)

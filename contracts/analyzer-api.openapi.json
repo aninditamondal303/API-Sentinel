@@ -1,0 +1,1662 @@
+{
+  "components": {
+    "schemas": {
+      "AnalysisDecision": {
+        "properties": {
+          "failOn": {
+            "anyOf": [
+              {
+                "enum": [
+                  "CRITICAL",
+                  "HIGH",
+                  "MEDIUM",
+                  "LOW",
+                  "INFO"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failon"
+          },
+          "failOnManualReview": {
+            "title": "Failonmanualreview",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "result": {
+            "enum": [
+              "PASS",
+              "FAIL"
+            ],
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result",
+          "reasons",
+          "failOn",
+          "failOnManualReview"
+        ],
+        "title": "AnalysisDecision",
+        "type": "object"
+      },
+      "AnalysisOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "failOn": {
+            "anyOf": [
+              {
+                "enum": [
+                  "CRITICAL",
+                  "HIGH",
+                  "MEDIUM",
+                  "LOW",
+                  "INFO"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "HIGH",
+            "description": "Fail when a finding has this severity or higher; null to disable.",
+            "title": "Failon"
+          },
+          "failOnManualReview": {
+            "default": true,
+            "title": "Failonmanualreview",
+            "type": "boolean"
+          }
+        },
+        "title": "AnalysisOptions",
+        "type": "object"
+      },
+      "AnalysisRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline": {
+            "$ref": "#/components/schemas/SpecPayload"
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/SpecPayload"
+          },
+          "options": {
+            "$ref": "#/components/schemas/AnalysisOptions"
+          }
+        },
+        "required": [
+          "baseline",
+          "candidate"
+        ],
+        "title": "AnalysisRequest",
+        "type": "object"
+      },
+      "AnalysisResult": {
+        "properties": {
+          "analyzer": {
+            "$ref": "#/components/schemas/AnalyzerInfo"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/SpecSummary"
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/SpecSummary"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/AnalysisDecision"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "schemaVersion": {
+            "title": "Schemaversion",
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/AnalysisSummary"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "analyzer",
+          "baseline",
+          "candidate",
+          "decision",
+          "summary",
+          "findings"
+        ],
+        "title": "AnalysisResult",
+        "type": "object"
+      },
+      "AnalysisSummary": {
+        "properties": {
+          "breakingChanges": {
+            "title": "Breakingchanges",
+            "type": "integer"
+          },
+          "byCategory": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "COMPATIBILITY",
+                "SECURITY_REGRESSION",
+                "SPEC_HYGIENE"
+              ]
+            },
+            "title": "Bycategory",
+            "type": "object"
+          },
+          "bySeverity": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW",
+                "INFO"
+              ]
+            },
+            "title": "Byseverity",
+            "type": "object"
+          },
+          "endpointsAffected": {
+            "title": "Endpointsaffected",
+            "type": "integer"
+          },
+          "manualReview": {
+            "title": "Manualreview",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "bySeverity",
+          "byCategory",
+          "breakingChanges",
+          "manualReview",
+          "endpointsAffected"
+        ],
+        "title": "AnalysisSummary",
+        "type": "object"
+      },
+      "AnalyzerInfo": {
+        "properties": {
+          "rulesetVersion": {
+            "title": "Rulesetversion",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "rulesetVersion"
+        ],
+        "title": "AnalyzerInfo",
+        "type": "object"
+      },
+      "ContractTestOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "baseUrl": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "maxLength": 2083,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Default base URL stored in the suite (overridable at run time).",
+            "title": "Baseurl"
+          },
+          "includeUnsafeMethods": {
+            "default": false,
+            "description": "Also generate tests for POST/PUT/PATCH/DELETE.",
+            "title": "Includeunsafemethods",
+            "type": "boolean"
+          }
+        },
+        "title": "ContractTestOptions",
+        "type": "object"
+      },
+      "ContractTestRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "options": {
+            "$ref": "#/components/schemas/ContractTestOptions"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/SpecPayload"
+          }
+        },
+        "required": [
+          "spec"
+        ],
+        "title": "ContractTestRequest",
+        "type": "object"
+      },
+      "ContractTestResult": {
+        "properties": {
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/GeneratedFile"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/GeneratedOperation"
+            },
+            "title": "Operations",
+            "type": "array"
+          },
+          "runCommand": {
+            "title": "Runcommand",
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/SpecSummary"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ContractTestSummary"
+          }
+        },
+        "required": [
+          "spec",
+          "summary",
+          "operations",
+          "files",
+          "runCommand"
+        ],
+        "title": "ContractTestResult",
+        "type": "object"
+      },
+      "ContractTestSummary": {
+        "properties": {
+          "ready": {
+            "title": "Ready",
+            "type": "integer"
+          },
+          "schemaValidated": {
+            "title": "Schemavalidated",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "ready",
+          "skipped",
+          "schemaValidated"
+        ],
+        "title": "ContractTestSummary",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "issues"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "Finding": {
+        "properties": {
+          "category": {
+            "enum": [
+              "COMPATIBILITY",
+              "SECURITY_REGRESSION",
+              "SPEC_HYGIENE"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "fingerprint": {
+            "title": "Fingerprint",
+            "type": "string"
+          },
+          "impact": {
+            "title": "Impact",
+            "type": "string"
+          },
+          "location": {
+            "description": "JSON Pointer into the document named by locationDocument.",
+            "title": "Location",
+            "type": "string"
+          },
+          "locationDocument": {
+            "enum": [
+              "baseline",
+              "candidate",
+              "spec"
+            ],
+            "title": "Locationdocument",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Method"
+          },
+          "newValue": {
+            "title": "Newvalue"
+          },
+          "oldValue": {
+            "title": "Oldvalue"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "remediation": {
+            "title": "Remediation",
+            "type": "string"
+          },
+          "requiresManualReview": {
+            "title": "Requiresmanualreview",
+            "type": "boolean"
+          },
+          "ruleId": {
+            "title": "Ruleid",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "CRITICAL",
+              "HIGH",
+              "MEDIUM",
+              "LOW",
+              "INFO"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ruleId",
+          "title",
+          "category",
+          "severity",
+          "requiresManualReview",
+          "method",
+          "path",
+          "location",
+          "locationDocument",
+          "field",
+          "oldValue",
+          "newValue",
+          "message",
+          "impact",
+          "remediation",
+          "fingerprint"
+        ],
+        "title": "Finding",
+        "type": "object"
+      },
+      "GeneratedFile": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ],
+        "title": "GeneratedFile",
+        "type": "object"
+      },
+      "GeneratedOperation": {
+        "properties": {
+          "expectedStatuses": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Expectedstatuses",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "inputSources": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Inputsources",
+            "type": "object"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operationid"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "requiresAuth": {
+            "title": "Requiresauth",
+            "type": "boolean"
+          },
+          "skipReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skipreason"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "skipped"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "method",
+          "path",
+          "operationId",
+          "status",
+          "skipReason",
+          "expectedStatuses",
+          "inputSources",
+          "notes",
+          "requiresAuth"
+        ],
+        "title": "GeneratedOperation",
+        "type": "object"
+      },
+      "Health": {
+        "properties": {
+          "analyzerVersion": {
+            "title": "Analyzerversion",
+            "type": "string"
+          },
+          "rulesetVersion": {
+            "title": "Rulesetversion",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "ready"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "analyzerVersion",
+          "rulesetVersion"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "Issue": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "pointer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pointer"
+          }
+        },
+        "required": [
+          "pointer",
+          "message"
+        ],
+        "title": "Issue",
+        "type": "object"
+      },
+      "Problem": {
+        "description": "RFC 9457 problem details, used for every error response.",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "errorCode": {
+            "title": "Errorcode",
+            "type": "string"
+          },
+          "errors": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Issue"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errors"
+          },
+          "instance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instance"
+          },
+          "requestId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requestid"
+          },
+          "side": {
+            "anyOf": [
+              {
+                "enum": [
+                  "baseline",
+                  "candidate"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Side"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status",
+          "detail",
+          "errorCode"
+        ],
+        "title": "Problem",
+        "type": "object"
+      },
+      "RuleInfo": {
+        "properties": {
+          "category": {
+            "enum": [
+              "COMPATIBILITY",
+              "SECURITY_REGRESSION",
+              "SPEC_HYGIENE"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "impact": {
+            "title": "Impact",
+            "type": "string"
+          },
+          "remediation": {
+            "title": "Remediation",
+            "type": "string"
+          },
+          "requiresManualReview": {
+            "title": "Requiresmanualreview",
+            "type": "boolean"
+          },
+          "severity": {
+            "enum": [
+              "CRITICAL",
+              "HIGH",
+              "MEDIUM",
+              "LOW",
+              "INFO"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "category",
+          "severity",
+          "requiresManualReview",
+          "impact",
+          "remediation"
+        ],
+        "title": "RuleInfo",
+        "type": "object"
+      },
+      "RulesResponse": {
+        "properties": {
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/RuleInfo"
+            },
+            "title": "Rules",
+            "type": "array"
+          },
+          "rulesetVersion": {
+            "title": "Rulesetversion",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rulesetVersion",
+          "rules"
+        ],
+        "title": "RulesResponse",
+        "type": "object"
+      },
+      "ScanDecision": {
+        "properties": {
+          "failOn": {
+            "anyOf": [
+              {
+                "enum": [
+                  "CRITICAL",
+                  "HIGH",
+                  "MEDIUM",
+                  "LOW",
+                  "INFO"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failon"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "result": {
+            "enum": [
+              "PASS",
+              "FAIL"
+            ],
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result",
+          "reasons",
+          "failOn"
+        ],
+        "title": "ScanDecision",
+        "type": "object"
+      },
+      "ScanOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "failOn": {
+            "anyOf": [
+              {
+                "enum": [
+                  "CRITICAL",
+                  "HIGH",
+                  "MEDIUM",
+                  "LOW",
+                  "INFO"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "HIGH",
+            "title": "Failon"
+          }
+        },
+        "title": "ScanOptions",
+        "type": "object"
+      },
+      "ScanSummary": {
+        "properties": {
+          "bySeverity": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW",
+                "INFO"
+              ]
+            },
+            "title": "Byseverity",
+            "type": "object"
+          },
+          "endpointsAffected": {
+            "title": "Endpointsaffected",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "bySeverity",
+          "endpointsAffected"
+        ],
+        "title": "ScanSummary",
+        "type": "object"
+      },
+      "SecurityScanRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "options": {
+            "$ref": "#/components/schemas/ScanOptions"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/SpecPayload"
+          }
+        },
+        "required": [
+          "spec"
+        ],
+        "title": "SecurityScanRequest",
+        "type": "object"
+      },
+      "SecurityScanResult": {
+        "properties": {
+          "analyzer": {
+            "$ref": "#/components/schemas/AnalyzerInfo"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/ScanDecision"
+          },
+          "disclaimer": {
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "schemaVersion": {
+            "title": "Schemaversion",
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/SpecSummary"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ScanSummary"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "analyzer",
+          "spec",
+          "decision",
+          "summary",
+          "findings",
+          "disclaimer"
+        ],
+        "title": "SecurityScanResult",
+        "type": "object"
+      },
+      "SpecPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "description": "The OpenAPI document as JSON or YAML text.",
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "pattern": "^[\\w.\\- ]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Original file name; only its extension is used, to pick JSON or YAML.",
+            "examples": [
+              "orders-v2.yaml"
+            ],
+            "title": "Filename"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "SpecPayload",
+        "type": "object"
+      },
+      "SpecRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "spec": {
+            "$ref": "#/components/schemas/SpecPayload"
+          }
+        },
+        "required": [
+          "spec"
+        ],
+        "title": "SpecRequest",
+        "type": "object"
+      },
+      "SpecSummary": {
+        "properties": {
+          "apiVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Apiversion"
+          },
+          "openapiVersion": {
+            "title": "Openapiversion",
+            "type": "string"
+          },
+          "operationCount": {
+            "title": "Operationcount",
+            "type": "integer"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "openapiVersion",
+          "title",
+          "apiVersion",
+          "operationCount",
+          "sha256"
+        ],
+        "title": "SpecSummary",
+        "type": "object"
+      },
+      "ValidationResult": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SpecSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid"
+        ],
+        "title": "ValidationResult",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Internal API of the API Sentinel analyzer. Called by the API Sentinel backend; not meant to be exposed publicly. All /internal/v1 endpoints require the X-Internal-Token header. Errors use RFC 9457 problem details.",
+    "title": "API Sentinel Analyzer",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health/live": {
+      "get": {
+        "operationId": "live_health_live_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Live",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "ready_health_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ready",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/internal/v1/analyses": {
+      "post": {
+        "operationId": "create_analysis_internal_v1_analyses_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-internal-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing or invalid X-Internal-Token"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Request or specification too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Content-Type must be application/json"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Specification could not be parsed, is invalid or unsupported"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unexpected analyzer error"
+          }
+        },
+        "summary": "Compare two specs"
+      }
+    },
+    "/internal/v1/contract-tests": {
+      "post": {
+        "operationId": "create_contract_tests_internal_v1_contract_tests_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-internal-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractTestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractTestResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing or invalid X-Internal-Token"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Request or specification too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Content-Type must be application/json"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Specification could not be parsed, is invalid or unsupported"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unexpected analyzer error"
+          }
+        },
+        "summary": "Generate tests"
+      }
+    },
+    "/internal/v1/rules": {
+      "get": {
+        "operationId": "list_rules_internal_v1_rules_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-internal-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RulesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing or invalid X-Internal-Token"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Request or specification too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Content-Type must be application/json"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Specification could not be parsed, is invalid or unsupported"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unexpected analyzer error"
+          }
+        },
+        "summary": "Rule catalog"
+      }
+    },
+    "/internal/v1/security-scans": {
+      "post": {
+        "operationId": "create_security_scan_internal_v1_security_scans_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-internal-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecurityScanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityScanResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing or invalid X-Internal-Token"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Request or specification too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Content-Type must be application/json"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Specification could not be parsed, is invalid or unsupported"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unexpected analyzer error"
+          }
+        },
+        "summary": "Security hygiene"
+      }
+    },
+    "/internal/v1/specs/validate": {
+      "post": {
+        "description": "Always 200 for a well-formed request: ``valid`` says whether the spec is usable.",
+        "operationId": "validate_spec_internal_v1_specs_validate_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-internal-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpecRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing or invalid X-Internal-Token"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Request or specification too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Content-Type must be application/json"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Specification could not be parsed, is invalid or unsupported"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unexpected analyzer error"
+          }
+        },
+        "summary": "Validate one spec"
+      }
+    }
+  }
+}

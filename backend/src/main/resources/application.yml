@@ -1,0 +1,76 @@
+# All secrets come from environment variables; there are no defaults for them.
+spring:
+  application:
+    name: apisentinel-backend
+  datasource:
+    url: ${APISENTINEL_DB_URL:jdbc:postgresql://localhost:5432/apisentinel}
+    username: ${APISENTINEL_DB_USER:apisentinel}
+    password: ${APISENTINEL_DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+  tomcat:
+    # Read the rest of an oversized upload so the client receives the 413 response.
+    max-swallow-size: 10MB
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      # Component names/status (db, analyzer, ...) only for authenticated callers.
+      show-components: when-authorized
+      probes:
+        enabled: true
+      group:
+        readiness:
+          # The analyzer is reported as a component but is deliberately not a readiness dependency:
+          # auth, projects and uploads history keep working while it restarts.
+          include: readinessState,db
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  pattern:
+    level: "%5p [%X{requestId:-}]"
+
+apisentinel:
+  jwt:
+    # Base64-encoded key of at least 32 bytes (HS256).
+    secret: ${APISENTINEL_JWT_SECRET:}
+    issuer: apisentinel
+    ttl: 60m
+  analyzer:
+    base-url: ${APISENTINEL_ANALYZER_URL:http://localhost:8081}
+    token: ${APISENTINEL_INTERNAL_TOKEN:}
+    connect-timeout: 3s
+    read-timeout: 30s
+  uploads:
+    max-spec-bytes: 5242880
