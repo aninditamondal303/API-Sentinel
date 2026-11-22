@@ -66,36 +66,41 @@ function OutcomeChart({ scans }: { scans: Dashboard["scans"] }) {
     { name: "Errored", value: scans.failed, color: "#64748b" },
   ].filter((row) => row.value > 0);
   if (scans.total === 0) return <EmptyState title="No scans yet" description="Run a compatibility or security scan to see outcomes here." />;
+  // Container query: side by side (the original layout) only when the card can hold padding (48px) +
+  // donut (160px) + gap (24px) + the legend at its narrowest (~140px) = 372px (23.25rem). Narrower cards
+  // (the two-column dashboard at ~1024px, phones) stack the legend under the donut so it never overflows.
   return (
-    <div className="flex h-64 items-center gap-6 px-6">
-      <div className="relative size-40 shrink-0" role="img" aria-label={`Scan outcomes: ${scans.passed} passed, ${scans.failedThreshold} failed threshold, ${scans.failed} errored`}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie data={rows} dataKey="value" innerRadius={52} outerRadius={72} paddingAngle={2} stroke="none">
-              {rows.map((row) => <Cell key={row.name} fill={row.color} />)}
-            </Pie>
-            <Tooltip {...tooltipStyle} />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
-          <div><p className="text-2xl font-semibold tabular-nums">{scans.total}</p><p className="text-[11px] text-ink-400">scans</p></div>
+    <div className="@container">
+      <div className="flex flex-col items-center gap-4 px-6 py-6 @min-[23.25rem]:h-64 @min-[23.25rem]:flex-row @min-[23.25rem]:gap-6 @min-[23.25rem]:py-0">
+        <div className="relative size-40 shrink-0" role="img" aria-label={`Scan outcomes: ${scans.passed} passed, ${scans.failedThreshold} failed threshold, ${scans.failed} errored`}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={rows} dataKey="value" innerRadius={52} outerRadius={72} paddingAngle={2} stroke="none">
+                {rows.map((row) => <Cell key={row.name} fill={row.color} />)}
+              </Pie>
+              <Tooltip {...tooltipStyle} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
+            <div><p className="text-2xl font-semibold tabular-nums">{scans.total}</p><p className="text-[11px] text-ink-400">scans</p></div>
+          </div>
         </div>
+        <ul className="space-y-2.5 text-sm">
+          {[
+            { name: "Passed", value: scans.passed, color: "#34d399" },
+            { name: "Failed threshold", value: scans.failedThreshold, color: "#f43f5e" },
+            { name: "Errored", value: scans.failed, color: "#64748b" },
+            { name: "Compatibility", value: scans.compatibility, color: "#3b82f6" },
+            { name: "Security", value: scans.security, color: "#a78bfa" },
+          ].map((row) => (
+            <li key={row.name} className="flex items-center gap-2.5">
+              <span className="size-2 rounded-full" style={{ background: row.color }} aria-hidden="true" />
+              <span className="text-ink-300">{row.name}</span>
+              <span className="ml-auto pl-4 font-medium tabular-nums text-ink-100">{row.value}</span>
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="space-y-2.5 text-sm">
-        {[
-          { name: "Passed", value: scans.passed, color: "#34d399" },
-          { name: "Failed threshold", value: scans.failedThreshold, color: "#f43f5e" },
-          { name: "Errored", value: scans.failed, color: "#64748b" },
-          { name: "Compatibility", value: scans.compatibility, color: "#3b82f6" },
-          { name: "Security", value: scans.security, color: "#a78bfa" },
-        ].map((row) => (
-          <li key={row.name} className="flex items-center gap-2.5">
-            <span className="size-2 rounded-full" style={{ background: row.color }} aria-hidden="true" />
-            <span className="text-ink-300">{row.name}</span>
-            <span className="ml-auto pl-4 font-medium tabular-nums text-ink-100">{row.value}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

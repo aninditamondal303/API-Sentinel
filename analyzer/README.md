@@ -9,7 +9,7 @@ service (`apisentinel.api`) that the backend calls.
 
 ```powershell
 pip install uv                       # once
-cd api-sentinel\analyzer
+cd API-Sentinel\analyzer
 uv sync --python 3.14                # creates .venv from uv.lock
 uv run python -m pytest              # full test suite
 uv run python -m ruff check src tests; uv run python -m mypy
@@ -53,4 +53,7 @@ are not a penetration test.
 
 On Windows with Smart App Control enabled, always use `uv run python -m <tool>` (as above):
 the unsigned launchers uv generates in `.venv\Scripts` (pytest.exe, uvicorn.exe, apisentinel.exe)
-are blocked, while `python.exe` is allowed.
+are blocked, while `python.exe` is allowed. Smart App Control can also block the unsigned native
+extensions of some dependencies (for example pydantic-core and PyYAML). If imports fail with an
+Application Control error, run the lint, type checks and tests in Docker instead:
+`powershell -ExecutionPolicy Bypass -File ..\scripts\test-analyzer.ps1` (from this folder).

@@ -17,10 +17,10 @@ dist/
 build/
 *.egg-info/
 
-# Java (future backend)
+# Java (backend)
 target/
 
-# Node (future frontend)
+# Node (frontend)
 node_modules/
 
 # Editors / OS
