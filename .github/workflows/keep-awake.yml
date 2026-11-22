@@ -1,0 +1,21 @@
+# Render's free web services sleep after 15 minutes without traffic, and waking the Java backend
+# takes a minute or more. This pings the backend's liveness endpoint every 10 minutes so a
+# recruiter opening the link gets a fast response. One always-on free service uses about
+# 730 of Render's 750 free instance hours per month. The liveness probe does not touch the
+# database, so Neon can still scale to zero. Disable this workflow to let the service sleep.
+name: keep-awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping backend liveness
+        run: curl -fsS --retry 3 --retry-delay 20 --max-time 120 https://api-sentinel-api.onrender.com/actuator/health/liveness
