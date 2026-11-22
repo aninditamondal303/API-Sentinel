@@ -1,0 +1,130 @@
+# Deploying API Sentinel to a free public server
+
+This guide puts the complete stack (frontend, backend, analyzer, PostgreSQL) on one
+**Oracle Cloud Always Free** Ampere A1 virtual machine behind **Caddy**, which serves a public
+**HTTPS** URL with an automatically renewed **Let's Encrypt** certificate on a free
+**DuckDNS** subdomain. Nothing here is paid.
+
+The local development setup is unchanged: production adds one override file
+(`infrastructure/docker-compose.prod.yml`) and a `Caddyfile`; the base `docker-compose.yml`
+is used as-is.
+
+```
+Internet ──443/80──▶ Caddy (TLS, HSTS) ──▶ nginx frontend ──/api, /actuator/health──▶ Spring Boot backend
+                                                                              ├──▶ Python analyzer (internal only)
+                                                                              └──▶ PostgreSQL (internal only, volume pgdata)
+```
+
+Only ports 80 and 443 are published. PostgreSQL (5432), the analyzer (8081) and the backend
+(8080) are reachable solely on the internal Docker network. The local-only host ports of the
+base file (127.0.0.1:8080 and :3000) are removed by the override.
+
+## Why Oracle Cloud Always Free
+
+| Option | Fits the full stack? | Catch |
+|---|---|---|
+| **Oracle Always Free, Ampere A1** | Yes: 2 OCPU / 12 GB RAM (since 15 June 2026), 200 GB block storage, persistent disks | Card + phone verification at sign-up; A1 capacity can be temporarily unavailable; idle instances can be reclaimed |
+| Oracle Always Free, E2.1.Micro | No: 1 GB RAM is too small for JVM + PostgreSQL + Python + nginx | — |
+| Render free | Partly: separate 512 MB services | Spins down after 15 min idle (~1 min cold start); free PostgreSQL expires after 30 days |
+| Google Cloud e2-micro | No: 1 GB RAM | Card required, US regions only |
+
+## Part 1 — Steps only you can do (accounts and console)
+
+1. **Create the Oracle Cloud account** at <https://www.oracle.com/cloud/free/>.
+   Oracle asks for an e-mail address, a mobile number and a credit card or a debit card that
+   works like a credit card (not prepaid, virtual or PIN debit). The card is for identity
+   verification; it is not charged unless you upgrade.
+   Choose the **home region** carefully (nearest to you): Always Free compute exists only there
+   and it cannot be changed later. Do **not** upgrade to Pay As You Go.
+
+2. **Create the VM**: Console → Compute → Instances → *Create instance*.
+   * Image: **Canonical Ubuntu 24.04** (the aarch64 build is picked automatically for Ampere).
+   * Shape: *Change shape* → Ampere → **VM.Standard.A1.Flex**, **2 OCPUs, 12 GB** memory. Check
+     that the *Always Free-eligible* label is shown. Do not exceed 2 OCPU / 12 GB in total.
+   * Networking: create a new VCN with a **public subnet** and **assign a public IPv4 address**.
+   * SSH keys: *Generate a key pair for me* and **download the private key** (keep it safe;
+     never commit it), or paste your own public key.
+   * Boot volume: default size is fine.
+   If you see "Out of capacity", try another availability domain or retry later; this is
+   Oracle-side capacity, not a configuration error.
+
+3. **Open ports 80 and 443 in the cloud firewall**: Networking → Virtual cloud networks → your
+   VCN → Subnets → the public subnet → Security → *Default Security List* → *Add Ingress Rules*:
+   * Source CIDR `0.0.0.0/0`, IP protocol TCP, destination port `80`
+   * Source CIDR `0.0.0.0/0`, IP protocol TCP, destination port `443`
+   * (optional, HTTP/3) Source CIDR `0.0.0.0/0`, IP protocol UDP, destination port `443`
+   Do **not** add rules for 5432, 8080 or 8081.
+
+4. **Get the free subdomain**: sign in at <https://www.duckdns.org> (GitHub, Google, …), add a
+   subdomain, e.g. `apisentinel-yourname`, and set its IP to the VM's public IPv4 address.
+   Your URL will be `https://apisentinel-yourname.duckdns.org`.
+
+## Part 2 — On the server (copy-paste)
+
+Connect from Windows PowerShell (OpenSSH is built into Windows):
+
+```powershell
+ssh -i C:\path\to\your-private-key.key ubuntu@<VM_PUBLIC_IP>
+```
+
+Then on the VM:
+
+```bash
+git clone https://github.com/aninditamondal303/API-Sentinel.git
+cd API-Sentinel
+bash scripts/deploy/server-setup.sh          # Docker from download.docker.com + host firewall 80/443
+exit                                          # log out so the docker group applies, then ssh in again
+cd API-Sentinel
+bash scripts/deploy/deploy.sh apisentinel-yourname.duckdns.org you@example.com
+bash scripts/deploy/verify.sh --restart       # infrastructure + end-to-end + persistence checks
+```
+
+`deploy.sh` creates `.env` on the server with freshly generated random secrets (mode 600,
+git-ignored, never printed) and keeps them on every later run. The e-mail address is only given
+to Let's Encrypt for certificate expiry notices.
+
+The first build on the VM takes several minutes (Maven, npm and pip downloads, ARM64 images).
+
+## Updating after a code change
+
+```bash
+cd ~/API-Sentinel
+git pull
+bash scripts/deploy/deploy.sh apisentinel-yourname.duckdns.org you@example.com
+bash scripts/deploy/verify.sh
+```
+
+Data lives in the `apisentinel_pgdata` Docker volume and survives restarts, rebuilds and
+redeployments. Certificates live in `apisentinel_caddy_data`. **Never** run
+`docker compose down -v` or `docker volume rm` on the server: that deletes the database.
+
+## Backups
+
+```bash
+bash scripts/deploy/backup-db.sh      # gzip'd pg_dump to ~/apisentinel-backups (mode 600, keeps 14)
+```
+
+## What verify.sh checks
+
+* postgres, analyzer, backend and frontend containers are healthy; Caddy is running
+* no host port is published except Caddy's 80/443; nothing listens on 5432, 8081, 8080, 3000
+* `https://<domain>/` returns 200 with a valid certificate; HTTP redirects to HTTPS
+* HSTS and Content-Security-Policy headers are present
+* `/actuator/health` is `UP`; `/actuator`, `/actuator/env`, `/actuator/beans` return 404
+* the API rejects unauthenticated requests; SPA deep links work
+* `smoke_test.py`: register → login → create project → upload two specs → compatibility scan →
+  findings → security scan → report → contract-test ZIP → dashboard → cross-user isolation
+* with `--restart`: every container is restarted and the earlier account, project and findings
+  are read back
+
+## Known limitations of the free deployment
+
+* **Single VM, no redundancy.** If Oracle stops the VM, the site is down until it is started.
+* **Idle reclamation.** Oracle may stop Always Free instances it considers idle over 7 days
+  (low CPU, network and — for A1 — memory utilisation). A stopped instance can be started again
+  from the console; data on the boot volume is kept.
+* **Public registration is open.** Anyone with the URL can create an account. There is no
+  e-mail verification or rate limiting on sign-up.
+* **DuckDNS** is a free community service; if it is down, the name does not resolve.
+* The backend builds `Location` headers with `http://` because it does not trust forwarded
+  headers; the web UI does not use them.

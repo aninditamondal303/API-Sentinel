@@ -1,0 +1,49 @@
+# Production override for a single public server (e.g. an Oracle Cloud Always Free VM).
+#
+# Use together with the base file, from the repository root:
+#   docker compose -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.prod.yml \
+#     --env-file .env up -d --build
+# (scripts/deploy/deploy.sh does exactly this.)
+#
+# What this adds on top of the local stack, without changing it:
+#   * Caddy as the only public entry point (ports 80/443). It obtains and renews a Let's Encrypt
+#     certificate for APISENTINEL_DOMAIN, redirects HTTP to HTTPS and proxies to the existing
+#     nginx frontend, which in turn forwards /api and /actuator/health to the backend.
+#   * The backend and frontend host ports (127.0.0.1:8080 / :3000) are removed: nothing but Caddy
+#     is published. PostgreSQL and the analyzer were never published and still are not.
+# Requires Docker Compose v2.24.4+ for the !reset tag.
+
+services:
+  backend:
+    ports: !reset []
+
+  frontend:
+    ports: !reset []
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      frontend:
+        condition: service_healthy
+    environment:
+      APISENTINEL_DOMAIN: ${APISENTINEL_DOMAIN:?APISENTINEL_DOMAIN must be set in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL must be set in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data        # certificates and ACME account: must persist to avoid rate limits
+      - caddy_config:/config
+    networks: [internal]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  caddy_data:
+  caddy_config:
