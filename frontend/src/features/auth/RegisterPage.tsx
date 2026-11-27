@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Field";
 import { InlineError } from "@/components/ui/States";
 import { AuthLayout } from "./AuthLayout";
+import { SlowServerNotice } from "./SlowServerNotice";
 import { validateRegister, type Errors } from "./validation";
 
 type Key = "email" | "password" | "displayName" | "confirm";
@@ -64,6 +65,7 @@ export function RegisterPage() {
           {(props) => <Input {...props} type="password" autoComplete="new-password" value={values.confirm} onChange={set("confirm")} />}
         </Field>
         <InlineError error={serverError} />
+        <SlowServerNotice active={submitting} />
         <Button type="submit" className="w-full" size="lg" loading={submitting}>Create account</Button>
       </form>
     </AuthLayout>
