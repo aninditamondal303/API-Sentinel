@@ -2,6 +2,7 @@
 #   analyzer  - ruff, mypy and pytest inside the analyzer test image
 #   backend   - Maven verify with Testcontainers (real PostgreSQL + real analyzer image)
 #   frontend  - type check and Vitest inside the frontend test image
+#   e2e       - Playwright smoke test in Chromium against the Docker Compose stack
 #   api-contract (pull requests only) - API Sentinel's own CLI compares the backend
 #              contract on the base branch with the PR version and fails on breaking changes
 # The analyzer and frontend jobs run scripts/test-*.sh, the bash equivalents of the PowerShell scripts.
@@ -105,6 +106,48 @@ jobs:
       - name: Show the end of the log on failure
         if: failure()
         run: tail -n 200 logs/backend-tests.txt
+
+  e2e:
+    name: Browser smoke test (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Generate throw-away secrets for this run (never committed)
+        run: |
+          {
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)"
+            echo "APISENTINEL_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')"
+            echo "APISENTINEL_INTERNAL_TOKEN=$(openssl rand -hex 32)"
+          } > .env
+
+      - name: Start the stack and wait for every health check
+        run: docker compose -f infrastructure/docker-compose.yml --env-file .env up -d --build --wait --wait-timeout 600
+
+      - name: Install Playwright and Chromium
+        working-directory: e2e
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Smoke test (register, upload, compatibility scan)
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: Upload the Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          if-no-files-found: ignore
+
+      - name: Stack logs on failure
+        if: failure()
+        run: docker compose -f infrastructure/docker-compose.yml --env-file .env logs --no-color --tail 200
 
   api-contract:
     name: API contract (checked by API Sentinel)
