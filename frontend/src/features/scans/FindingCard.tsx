@@ -1,5 +1,6 @@
 import { ChevronDown, Eye } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router";
 import type { Finding } from "@/api/types";
 import { Badge, MethodBadge, SeverityBadge, severityColor } from "@/components/ui/Badge";
 import { categoryLabel, isBreaking } from "@/lib/findings";
@@ -53,6 +54,13 @@ export function FindingCard({ finding, defaultOpen = false }: { finding: Finding
               <p className="mt-1 text-ink-100">{finding.remediation}</p>
             </div>
           ) : null}
+          <p className="text-xs text-ink-400">
+            Rule{" "}
+            <Link to={`/app/rules#${encodeURIComponent(finding.ruleId)}`} className="font-mono text-accent-300 hover:text-accent-200">
+              {finding.ruleId}
+            </Link>
+            : see what it checks in the rules reference.
+          </p>
           {hasValues ? (
             <div className="grid gap-3 md:grid-cols-2">
               <ValueBox label="Before (baseline)" value={finding.oldValue} tone="old" />

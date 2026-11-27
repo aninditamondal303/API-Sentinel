@@ -29,6 +29,13 @@ describe("ScanDetailPage", () => {
     expect(screen.queryByText("Enum value added to response")).not.toBeInTheDocument();
   });
 
+  it("links an open finding to its rule in the rules reference", async () => {
+    setup();
+    renderApp("/app/projects/p-1/scans/s-1");
+    const link = await screen.findByRole("link", { name: "OP-001" });
+    expect(link).toHaveAttribute("href", "/app/rules#OP-001");
+  });
+
   it("separates manual-review findings from breaking changes", async () => {
     setup();
     renderApp("/app/projects/p-1/scans/s-1");
