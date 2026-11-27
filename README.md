@@ -173,6 +173,8 @@ Each component has a script that runs its full suite inside Docker and writes a 
 
 All three suites (analyzer, backend and frontend) also run on GitHub Actions on every push to `main` and every pull request; see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
+On pull requests, CI also uses API Sentinel on itself: the `api-contract` job runs `apisentinel diff --fail-on high` on the base-branch and PR versions of `contracts/backend-api.openapi.json`, so a breaking change to the public API fails the PR.
+
 | Component | Command | Last verified result (Windows 11, Docker Desktop) |
 |---|---|---|
 | Analyzer | `.\scripts\test-analyzer.ps1` | ruff and mypy clean; **372 passed** |
