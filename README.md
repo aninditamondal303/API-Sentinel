@@ -8,14 +8,14 @@ API Sentinel compares two versions of an OpenAPI specification and tells you, be
 
 **[Live demo](https://api-sentinel-app.onrender.com/)**
 
-> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 469 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
+> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 473 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
 
 > **Status:** a complete portfolio project, deployed live on Render (frontend, backend, analyzer and database also run together locally in Docker Compose). It is **not** production-hardened. See [Limitations](#limitations).
 
 **At a glance**
 - Three services in three languages (React/TypeScript, Java/Spring Boot, Python/FastAPI) plus PostgreSQL, started with one command.
 - 73 deterministic analysis rules with severity, impact and remediation for every finding.
-- 469 automated tests (372 analyzer, 54 backend, 43 frontend); backend integration tests run against real PostgreSQL and analyzer containers.
+- 473 automated tests (372 analyzer, 54 backend, 47 frontend); backend integration tests run against real PostgreSQL and analyzer containers.
 - Security by default: secrets only in a git-ignored `.env`, per-user data isolation, internal services never exposed to the browser, strict Content-Security-Policy.
 
 ---
@@ -177,7 +177,7 @@ All three suites (analyzer, backend and frontend) also run on GitHub Actions on 
 |---|---|---|
 | Analyzer | `.\scripts\test-analyzer.ps1` | ruff and mypy clean; **372 passed** |
 | Backend | `.\scripts\test-backend.ps1` | **54 tests, 0 failures, 0 errors, 0 skipped**; `BUILD SUCCESS` |
-| Frontend | `.\scripts\test-frontend.ps1` | type check clean; **43 tests passed** (11 files); production image built |
+| Frontend | `.\scripts\test-frontend.ps1` | type check clean; **47 tests passed** (12 files, verified in CI); production image built |
 | Full stack | `.\scripts\demo-backend.ps1` | **47 checks passed, 0 failed** |
 
 Run each with `powershell -ExecutionPolicy Bypass -File <script>`.
