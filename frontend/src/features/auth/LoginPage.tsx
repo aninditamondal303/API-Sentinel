@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Field";
 import { InlineError } from "@/components/ui/States";
 import { AuthLayout } from "./AuthLayout";
+import { SlowServerNotice } from "./SlowServerNotice";
 import { validateLogin, type Errors } from "./validation";
 
 export function LoginPage() {
@@ -53,6 +54,7 @@ export function LoginPage() {
           {(props) => <Input {...props} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />}
         </Field>
         <InlineError error={serverError} />
+        <SlowServerNotice active={submitting} />
         <Button type="submit" className="w-full" size="lg" loading={submitting}>Sign in</Button>
       </form>
     </AuthLayout>

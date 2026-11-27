@@ -19,6 +19,8 @@ const pages = {
   compare: () => import("@/features/scans/ComparePage").then((m) => ({ default: m.ComparePage })),
   scanDetail: () => import("@/features/scans/ScanDetailPage").then((m) => ({ default: m.ScanDetailPage })),
   specDetail: () => import("@/features/specifications/SpecDetailPage").then((m) => ({ default: m.SpecDetailPage })),
+  rules: () => import("@/features/rules/RulesPage").then((m) => ({ default: m.RulesPage })),
+  account: () => import("@/features/account/AccountPage").then((m) => ({ default: m.AccountPage })),
 };
 const DashboardPage = lazy(pages.dashboard);
 const ProjectsPage = lazy(pages.projects);
@@ -26,6 +28,8 @@ const ProjectDetailPage = lazy(pages.projectDetail);
 const ComparePage = lazy(pages.compare);
 const ScanDetailPage = lazy(pages.scanDetail);
 const SpecDetailPage = lazy(pages.specDetail);
+const RulesPage = lazy(pages.rules);
+const AccountPage = lazy(pages.account);
 
 /** Loads every signed-in page chunk (module imports are cached, so lazy() then resolves immediately). */
 export function preloadAppPages(): Promise<unknown> {
@@ -70,6 +74,8 @@ export function AppRoutes() {
         <Route path="projects/:projectId/compare" element={<ComparePage />} />
         <Route path="projects/:projectId/specifications/:specId" element={<SpecDetailPage />} />
         <Route path="projects/:projectId/scans/:scanId" element={<ScanDetailPage />} />
+        <Route path="rules" element={<RulesPage />} />
+        <Route path="account" element={<AccountPage />} />
         <Route path="*" element={<NotFound home="/app" />} />
       </Route>
       <Route path="*" element={<div className="bg-ink-950"><NotFound /></div>} />

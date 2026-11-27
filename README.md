@@ -8,14 +8,14 @@ API Sentinel compares two versions of an OpenAPI specification and tells you, be
 
 **[Live demo](https://api-sentinel-app.onrender.com/)**
 
-> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 469 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
+> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules, 488 automated tests and a Playwright browser smoke test, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
 
 > **Status:** a complete portfolio project, deployed live on Render (frontend, backend, analyzer and database also run together locally in Docker Compose). It is **not** production-hardened. See [Limitations](#limitations).
 
 **At a glance**
 - Three services in three languages (React/TypeScript, Java/Spring Boot, Python/FastAPI) plus PostgreSQL, started with one command.
 - 73 deterministic analysis rules with severity, impact and remediation for every finding.
-- 469 automated tests (372 analyzer, 54 backend, 43 frontend); backend integration tests run against real PostgreSQL and analyzer containers.
+- 488 automated tests (372 analyzer, 61 backend, 55 frontend) plus a Playwright browser smoke test; backend integration tests run against real PostgreSQL and analyzer containers.
 - Security by default: secrets only in a git-ignored `.env`, per-user data isolation, internal services never exposed to the browser, strict Content-Security-Policy.
 
 ---
@@ -61,7 +61,7 @@ OpenAPI specifications already describe the contract precisely, so the compariso
 - The ZIP includes `requirements.txt` and `pytest.ini`; run it against your own environment with `pytest --base-url https://your-api.example` (or set `APISENTINEL_BASE_URL`).
 
 **Web application**
-- Registration and login (JWT), projects, specification uploads (YAML or JSON, validated before storage), scan history, filters, JSON report download and a dashboard computed from the database.
+- Registration and login (JWT), projects, specification uploads (YAML or JSON, validated before storage), scan history, filters, JSON report download, a dashboard computed from the database, a rules reference that every finding links to, and password change.
 - Each user only ever sees their own data; another user's resources return `404`.
 - Responsive dark UI with loading, empty and error states.
 
@@ -173,18 +173,24 @@ Each component has a script that runs its full suite inside Docker and writes a 
 
 All three suites (analyzer, backend and frontend) also run on GitHub Actions on every push to `main` and every pull request; see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
+CI also runs a **browser smoke test** (`e2e/`, Playwright + Chromium) against the full Docker Compose stack: register, create a project, upload the Orders API baseline and breaking candidate, run a compatibility scan and check the FAIL decision. To run it locally against a running stack: `cd e2e && npm ci && npx playwright install chromium && npx playwright test`.
+
+On pull requests, CI also uses API Sentinel on itself: the `api-contract` job runs `apisentinel diff --fail-on high` on the base-branch and PR versions of `contracts/backend-api.openapi.json`, so a breaking change to the public API fails the PR.
+
 | Component | Command | Last verified result (Windows 11, Docker Desktop) |
 |---|---|---|
 | Analyzer | `.\scripts\test-analyzer.ps1` | ruff and mypy clean; **372 passed** |
-| Backend | `.\scripts\test-backend.ps1` | **54 tests, 0 failures, 0 errors, 0 skipped**; `BUILD SUCCESS` |
-| Frontend | `.\scripts\test-frontend.ps1` | type check clean; **43 tests passed** (11 files); production image built |
+| Backend | `.\scripts\test-backend.ps1` | **61 tests, 0 failures, 0 errors, 0 skipped** (verified in CI); `BUILD SUCCESS` |
+| Frontend | `.\scripts\test-frontend.ps1` | type check clean; **55 tests passed** (14 files, verified in CI); production image built |
 | Full stack | `.\scripts\demo-backend.ps1` | **47 checks passed, 0 failed** |
 
 Run each with `powershell -ExecutionPolicy Bypass -File <script>`.
 
+On Linux or macOS, the bash equivalents run the same Docker commands: `bash scripts/test-analyzer.sh`, `bash scripts/test-backend.sh` and `bash scripts/test-frontend.sh` (logs in `logs/`). CI runs the analyzer and frontend scripts on every push.
+
 What the suites cover:
 - **Analyzer:** rule-by-rule unit tests, property-based tests (Hypothesis), real-world fixture specifications, the internal HTTP API, and a drift test that keeps `contracts/analyzer-api.openapi.json` in sync with the code.
-- **Backend:** integration tests that start a **real PostgreSQL 18 container and the real analyzer image** with Testcontainers, so Java-to-Python calls in the tests are genuine. They cover authentication and token tampering, per-user isolation, uploads, scans and persisted findings, dashboard figures checked against SQL, contract-test ZIPs, and analyzer timeouts and errors (using a small local stub server).
+- **Backend:** integration tests that start a **real PostgreSQL 18 container and the real analyzer image** with Testcontainers, so Java-to-Python calls in the tests are genuine. They cover authentication and token tampering, per-user isolation, uploads, scans and persisted findings, dashboard figures checked against SQL, contract-test ZIPs, and analyzer timeouts and errors (using a small local stub server). A drift test keeps `contracts/backend-api.openapi.json` in sync with the public API; after an intentional API change, regenerate it from `backend/` with `./mvnw verify -Dtest=ApiContractDriftTest -Dapisentinel.updateContract=true`.
 - **Frontend:** component and flow tests with a mocked network layer (MSW): the API client and error handling, session storage and expiry, login/registration, the dashboard's data, empty and error states, uploads, finding grouping and contract-test downloads.
 
 Before compiling, `test-backend.ps1` checks the Maven distribution pinned by the Maven Wrapper against the SHA-512 checksums published by Maven Central and apache.org (`scripts\verify-maven-dist.sh`).
@@ -229,7 +235,7 @@ On Windows with Smart App Control enabled, native Python dependencies may be blo
 ## Design decisions
 
 - **Rules live in one place.** All analysis is in the Python analyzer; the Java backend orchestrates, persists and authorizes. Even the dashboard's breaking-change total is the sum of the counts the analyzer reported, not recalculated in Java.
-- **A committed contract between services.** The analyzer's internal API is described in `contracts/analyzer-api.openapi.json`, and a test fails if the code and the contract drift apart.
+- **Committed API contracts.** The analyzer's internal API is described in `contracts/analyzer-api.openapi.json` and the public backend API in `contracts/backend-api.openapi.json`; tests fail if the code and either contract drift apart, so every API change shows up in the pull request diff.
 - **Deterministic output.** The same two specifications always produce the same findings, in the same order, with stable fingerprints, so results can be compared over time.
 - **No long transaction around a remote call.** A scan row is committed as `RUNNING` before the analyzer is called and completed or marked `FAILED` afterwards, so a slow analyzer never holds a database connection.
 - **Same-origin frontend.** nginx proxies the API, which avoids CORS and keeps the analyzer and database off the browser's network path.
@@ -258,7 +264,7 @@ API-Sentinel/
 │   ├── src/components/       layout and UI components
 │   ├── src/api/              typed API client mirroring the backend DTOs
 │   └── nginx/                server and security-header configuration
-├── contracts/                analyzer API contract (OpenAPI)
+├── contracts/                analyzer and backend API contracts (OpenAPI)
 ├── examples/                 Orders API (3 versions) and Inventory API specifications
 ├── infrastructure/           docker-compose.yml
 └── scripts/                  setup, test and demo scripts (PowerShell)
@@ -292,12 +298,12 @@ Captured from the running Docker Compose stack using the included Orders API exa
 
 - **Free-tier hosting.** The [live demo](https://api-sentinel-app.onrender.com/) runs on free plans, deployed from [`render.yaml`](render.yaml): the frontend is a Render static site, the backend and analyzer share one 512 MB Render web service (the analyzer listens on `127.0.0.1` inside the container), and PostgreSQL is a free Neon database. An idle backend sleeps, so the first request after a pause can take about a minute, and registration is open to anyone with the link. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Locally, the Docker Compose stack still runs on `127.0.0.1` over plain HTTP.
 - **Session storage.** The JWT is kept in the browser's `sessionStorage` (one tab, cleared when it closes). The strict Content-Security-Policy reduces the risk of cross-site scripting, but it does not protect the token from malicious JavaScript that does run on the same origin: any such script can read `sessionStorage`. An httpOnly cookie would keep the token out of JavaScript's reach entirely, but it requires backend changes (issuing and reading the cookie) and CSRF protection for state-changing requests.
-- **No refresh tokens or account management.** Sessions last 60 minutes; there is no password reset, email verification or user administration.
+- **Limited account management.** Signed-in users can change their password, but there are no refresh tokens, password reset, email verification or user administration. Sessions last 60 minutes, and tokens issued before a password change stay valid until they expire.
 - **Login rate limiting is in memory**, so it resets on restart and would not work across several backend instances.
 - **Synchronous scans.** The backend waits for the analyzer (30-second read timeout); there is no job queue.
 - **Security checks are specification-level only** and are not a substitute for penetration testing or runtime security tools.
-- **Verified on Windows 11 with Docker Desktop.** Other platforms have not been tested, and the helper scripts are PowerShell.
-- **Browser coverage:** the UI was checked manually in a Chromium-based browser; there are no automated end-to-end browser tests.
+- **Developed on Windows 11 with Docker Desktop.** The test suites also run on Linux in GitHub Actions, including the bash test scripts; the full-stack demo script (`demo-backend.ps1`) is PowerShell only, and macOS has not been tested.
+- **Browser coverage:** one Playwright smoke test covers the main journey in Chromium; other pages and browsers were checked manually.
 
 ## Future improvements
 
@@ -306,7 +312,7 @@ Captured from the running Docker Compose stack using the included Orders API exa
 - httpOnly cookie sessions with CSRF protection and refresh tokens.
 - Team workspaces and shared projects.
 - Comparing specifications directly from a Git repository or URL.
-- Automated end-to-end browser tests (for example, Playwright).
+- More Playwright coverage (projects, security scans, contract tests) and other browsers.
 
 ## License
 

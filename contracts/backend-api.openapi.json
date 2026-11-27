@@ -1,0 +1,1743 @@
+{
+  "components" : {
+    "schemas" : {
+      "ChangePasswordRequest" : {
+        "properties" : {
+          "currentPassword" : {
+            "maxLength" : 128,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "newPassword" : {
+            "maxLength" : 128,
+            "minLength" : 8,
+            "pattern" : "^(?=.*[A-Za-z])(?=.*\\d).*$",
+            "type" : "string"
+          }
+        },
+        "required" : [ "currentPassword", "newPassword" ],
+        "type" : "object"
+      },
+      "CompatibilityScanRequest" : {
+        "properties" : {
+          "baselineSpecificationId" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "candidateSpecificationId" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "failOn" : {
+            "enum" : [ "INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL" ],
+            "type" : "string"
+          },
+          "failOnManualReview" : {
+            "type" : "boolean"
+          },
+          "useProjectPolicy" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "baselineSpecificationId", "candidateSpecificationId" ],
+        "type" : "object"
+      },
+      "ContractTestResult" : {
+        "properties" : {
+          "files" : {
+            "items" : {
+              "$ref" : "#/components/schemas/GeneratedFile"
+            },
+            "type" : "array"
+          },
+          "operations" : {
+            "items" : {
+              "$ref" : "#/components/schemas/GeneratedOperation"
+            },
+            "type" : "array"
+          },
+          "runCommand" : {
+            "type" : "string"
+          },
+          "spec" : {
+            "$ref" : "#/components/schemas/SpecSummary"
+          },
+          "summary" : {
+            "$ref" : "#/components/schemas/ContractTestSummary"
+          }
+        },
+        "type" : "object"
+      },
+      "ContractTestSummary" : {
+        "properties" : {
+          "ready" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "schemaValidated" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "skipped" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "total" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "DashboardResponse" : {
+        "properties" : {
+          "breakingChanges" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "projects" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "recentScans" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ScanResponse"
+            },
+            "type" : "array"
+          },
+          "scans" : {
+            "$ref" : "#/components/schemas/ScanCounts"
+          },
+          "severityDistribution" : {
+            "additionalProperties" : {
+              "format" : "int64",
+              "type" : "integer"
+            },
+            "type" : "object"
+          },
+          "specifications" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "FindingResponse" : {
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          },
+          "field" : {
+            "type" : "string"
+          },
+          "fingerprint" : {
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "impact" : {
+            "type" : "string"
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "locationDocument" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "method" : {
+            "type" : "string"
+          },
+          "newValue" : { },
+          "oldValue" : { },
+          "path" : {
+            "type" : "string"
+          },
+          "position" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "remediation" : {
+            "type" : "string"
+          },
+          "requiresManualReview" : {
+            "type" : "boolean"
+          },
+          "ruleId" : {
+            "type" : "string"
+          },
+          "severity" : {
+            "enum" : [ "INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL" ],
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "GeneratedFile" : {
+        "properties" : {
+          "content" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "GeneratedOperation" : {
+        "properties" : {
+          "expectedStatuses" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "inputSources" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
+          },
+          "method" : {
+            "type" : "string"
+          },
+          "notes" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "operationId" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          },
+          "requiresAuth" : {
+            "type" : "boolean"
+          },
+          "skipReason" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "LoginRequest" : {
+        "properties" : {
+          "email" : {
+            "maxLength" : 254,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "password" : {
+            "maxLength" : 128,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "email", "password" ],
+        "type" : "object"
+      },
+      "PageResponseFindingResponse" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/FindingResponse"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "totalPages" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "PageResponseProjectResponse" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ProjectResponse"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "totalPages" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "PageResponseScanResponse" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ScanResponse"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "totalPages" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "PageResponseSpecificationResponse" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SpecificationResponse"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "totalPages" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "PolicyRequest" : {
+        "properties" : {
+          "failOn" : {
+            "enum" : [ "INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL" ],
+            "type" : "string"
+          },
+          "failOnManualReview" : {
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
+      "PolicyResponse" : {
+        "properties" : {
+          "failOn" : {
+            "enum" : [ "INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL" ],
+            "type" : "string"
+          },
+          "failOnManualReview" : {
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
+      "ProjectRequest" : {
+        "properties" : {
+          "description" : {
+            "maxLength" : 1000,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "name" : {
+            "maxLength" : 100,
+            "minLength" : 3,
+            "type" : "string"
+          }
+        },
+        "required" : [ "name" ],
+        "type" : "object"
+      },
+      "ProjectResponse" : {
+        "properties" : {
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "policy" : {
+            "$ref" : "#/components/schemas/PolicyResponse"
+          },
+          "updatedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "RegisterRequest" : {
+        "properties" : {
+          "displayName" : {
+            "maxLength" : 100,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "email" : {
+            "format" : "email",
+            "maxLength" : 254,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "password" : {
+            "maxLength" : 128,
+            "minLength" : 8,
+            "pattern" : "^(?=.*[A-Za-z])(?=.*\\d).*$",
+            "type" : "string"
+          }
+        },
+        "required" : [ "displayName", "email", "password" ],
+        "type" : "object"
+      },
+      "RuleInfo" : {
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "impact" : {
+            "type" : "string"
+          },
+          "remediation" : {
+            "type" : "string"
+          },
+          "requiresManualReview" : {
+            "type" : "boolean"
+          },
+          "severity" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "RulesResult" : {
+        "properties" : {
+          "rules" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RuleInfo"
+            },
+            "type" : "array"
+          },
+          "rulesetVersion" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "ScanCounts" : {
+        "properties" : {
+          "compatibility" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "completed" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "failed" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "failedThreshold" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "passed" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "running" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "security" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "total" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "ScanReport" : {
+        "properties" : {
+          "findings" : {
+            "items" : {
+              "$ref" : "#/components/schemas/FindingResponse"
+            },
+            "type" : "array"
+          },
+          "notes" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
+          },
+          "reportType" : {
+            "type" : "string"
+          },
+          "scan" : {
+            "$ref" : "#/components/schemas/ScanResponse"
+          }
+        },
+        "type" : "object"
+      },
+      "ScanResponse" : {
+        "properties" : {
+          "analyzerVersion" : {
+            "type" : "string"
+          },
+          "baseline" : {
+            "$ref" : "#/components/schemas/SpecRef"
+          },
+          "breakingChanges" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "bySeverity" : {
+            "$ref" : "#/components/schemas/SeverityCounts"
+          },
+          "completedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "decision" : {
+            "enum" : [ "PASS", "FAIL" ],
+            "type" : "string"
+          },
+          "durationMs" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "endpointsAffected" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "errorCode" : {
+            "type" : "string"
+          },
+          "errorMessage" : {
+            "type" : "string"
+          },
+          "failOn" : {
+            "enum" : [ "INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL" ],
+            "type" : "string"
+          },
+          "failOnManualReview" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "manualReview" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "projectId" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "reasons" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "rulesetVersion" : {
+            "type" : "string"
+          },
+          "status" : {
+            "enum" : [ "RUNNING", "COMPLETED", "FAILED" ],
+            "type" : "string"
+          },
+          "target" : {
+            "$ref" : "#/components/schemas/SpecRef"
+          },
+          "totalFindings" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "type" : {
+            "enum" : [ "COMPATIBILITY", "SECURITY" ],
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "SecurityScanRequest" : {
+        "properties" : {
+          "failOn" : {
+            "enum" : [ "INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL" ],
+            "type" : "string"
+          },
+          "specificationId" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "useProjectPolicy" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "specificationId" ],
+        "type" : "object"
+      },
+      "SeverityCounts" : {
+        "properties" : {
+          "critical" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "high" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "info" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "low" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "medium" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "SpecRef" : {
+        "properties" : {
+          "apiVersion" : {
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "versionLabel" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "SpecSummary" : {
+        "properties" : {
+          "apiVersion" : {
+            "type" : "string"
+          },
+          "openapiVersion" : {
+            "type" : "string"
+          },
+          "operationCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "sha256" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "SpecificationResponse" : {
+        "properties" : {
+          "apiVersion" : {
+            "type" : "string"
+          },
+          "format" : {
+            "enum" : [ "YAML", "JSON" ],
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "openapiVersion" : {
+            "type" : "string"
+          },
+          "operationCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "originalFilename" : {
+            "type" : "string"
+          },
+          "projectId" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "sha256" : {
+            "type" : "string"
+          },
+          "sizeBytes" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "uploadedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "versionLabel" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "TokenResponse" : {
+        "properties" : {
+          "accessToken" : {
+            "type" : "string"
+          },
+          "expiresIn" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "tokenType" : {
+            "type" : "string"
+          },
+          "user" : {
+            "$ref" : "#/components/schemas/UserResponse"
+          }
+        },
+        "type" : "object"
+      },
+      "UserResponse" : {
+        "properties" : {
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "bearerFormat" : "JWT",
+        "scheme" : "bearer",
+        "type" : "http"
+      }
+    }
+  },
+  "info" : {
+    "description" : "Projects, OpenAPI specification versions, compatibility and security scans, findings and dashboard statistics. Errors use RFC 9457 problem details.",
+    "title" : "API Sentinel API",
+    "version" : "v1"
+  },
+  "openapi" : "3.1.0",
+  "paths" : {
+    "/api/v1/auth/login" : {
+      "post" : {
+        "operationId" : "login",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Authentication" ]
+      }
+    },
+    "/api/v1/auth/me" : {
+      "get" : {
+        "operationId" : "me",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Authentication" ]
+      }
+    },
+    "/api/v1/auth/password" : {
+      "post" : {
+        "operationId" : "changePassword",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "tags" : [ "Authentication" ]
+      }
+    },
+    "/api/v1/auth/register" : {
+      "post" : {
+        "operationId" : "register",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "Authentication" ]
+      }
+    },
+    "/api/v1/dashboard" : {
+      "get" : {
+        "operationId" : "get_3",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DashboardResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Dashboard" ]
+      }
+    },
+    "/api/v1/projects" : {
+      "get" : {
+        "operationId" : "list",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "maximum" : 100,
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseProjectResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Projects" ]
+      },
+      "post" : {
+        "operationId" : "create",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProjectRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Projects" ]
+      }
+    },
+    "/api/v1/projects/{projectId}" : {
+      "delete" : {
+        "operationId" : "delete",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "tags" : [ "Projects" ]
+      },
+      "get" : {
+        "operationId" : "get",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Projects" ]
+      },
+      "put" : {
+        "operationId" : "update",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProjectRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Projects" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/policy" : {
+      "get" : {
+        "operationId" : "getPolicy",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PolicyResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Projects" ]
+      },
+      "put" : {
+        "operationId" : "updatePolicy",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PolicyRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PolicyResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Projects" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/scans" : {
+      "get" : {
+        "operationId" : "list_3",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "type",
+          "required" : false,
+          "schema" : {
+            "enum" : [ "COMPATIBILITY", "SECURITY" ],
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "enum" : [ "RUNNING", "COMPLETED", "FAILED" ],
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "maximum" : 100,
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseScanResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Scans" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/scans/compatibility" : {
+      "post" : {
+        "operationId" : "compatibility",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CompatibilityScanRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ScanResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Scans" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/scans/security" : {
+      "post" : {
+        "operationId" : "security",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SecurityScanRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ScanResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Scans" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/scans/{scanId}" : {
+      "get" : {
+        "operationId" : "get_2",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "scanId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ScanResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Scans" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/scans/{scanId}/findings" : {
+      "get" : {
+        "operationId" : "findings",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "scanId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "severity",
+          "required" : false,
+          "schema" : {
+            "enum" : [ "INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL" ],
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "category",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "path",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 50,
+            "format" : "int32",
+            "maximum" : 200,
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseFindingResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Scans" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/scans/{scanId}/report" : {
+      "get" : {
+        "operationId" : "report",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "scanId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ScanReport"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Scans" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/specifications" : {
+      "get" : {
+        "operationId" : "list_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "maximum" : 100,
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageResponseSpecificationResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Specifications" ]
+      },
+      "post" : {
+        "operationId" : "upload",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "versionLabel",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "properties" : {
+                  "file" : {
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                },
+                "required" : [ "file" ],
+                "type" : "object"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SpecificationResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Specifications" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/specifications/{specId}" : {
+      "delete" : {
+        "operationId" : "delete_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "specId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "tags" : [ "Specifications" ]
+      },
+      "get" : {
+        "operationId" : "get_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "specId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SpecificationResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Specifications" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/specifications/{specId}/content" : {
+      "get" : {
+        "operationId" : "download_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "specId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "format" : "byte",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Specifications" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/specifications/{specId}/contract-tests" : {
+      "get" : {
+        "operationId" : "preview",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "specId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "includeUnsafeMethods",
+          "required" : false,
+          "schema" : {
+            "default" : false,
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
+          "name" : "baseUrl",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ContractTestResult"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Contract tests" ]
+      }
+    },
+    "/api/v1/projects/{projectId}/specifications/{specId}/contract-tests/download" : {
+      "get" : {
+        "operationId" : "download",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "specId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "includeUnsafeMethods",
+          "required" : false,
+          "schema" : {
+            "default" : false,
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
+          "name" : "baseUrl",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "format" : "byte",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Contract tests" ]
+      }
+    },
+    "/api/v1/rules" : {
+      "get" : {
+        "operationId" : "list_2",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RulesResult"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "List every analysis rule with its category, severity, impact and remediation",
+        "tags" : [ "Rules" ]
+      }
+    }
+  },
+  "security" : [ {
+    "bearerAuth" : [ ]
+  } ]
+}

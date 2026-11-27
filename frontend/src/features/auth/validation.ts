@@ -25,3 +25,20 @@ export function validateRegister(values: { email: string; password: string; disp
   if (values.confirm !== values.password) errors.confirm = "Passwords do not match.";
   return errors;
 }
+
+function passwordProblem(password: string): string | undefined {
+  if (password.length < 8 || password.length > 128) return "Use 8 to 128 characters.";
+  if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) return "Include at least one letter and one digit.";
+  return undefined;
+}
+
+export function validateChangePassword(values: { currentPassword: string; newPassword: string; confirm: string }):
+    Errors<"currentPassword" | "newPassword" | "confirm"> {
+  const errors: Errors<"currentPassword" | "newPassword" | "confirm"> = {};
+  if (!values.currentPassword) errors.currentPassword = "Enter your current password.";
+  const problem = passwordProblem(values.newPassword);
+  if (problem) errors.newPassword = problem;
+  else if (values.newPassword === values.currentPassword) errors.newPassword = "Choose a password different from the current one.";
+  if (values.confirm !== values.newPassword) errors.confirm = "Passwords do not match.";
+  return errors;
+}

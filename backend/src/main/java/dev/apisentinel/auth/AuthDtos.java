@@ -21,6 +21,13 @@ public final class AuthDtos {
             @NotBlank @Size(max = 100) String displayName) {
     }
 
+    public record ChangePasswordRequest(
+            @NotBlank @Size(max = 128) String currentPassword,
+            @NotBlank @Size(min = 8, max = 128, message = "must be 8 to 128 characters")
+            @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).*$", message = "must contain a letter and a digit")
+            String newPassword) {
+    }
+
     public record LoginRequest(@NotBlank @Size(max = 254) String email, @NotBlank @Size(max = 128) String password) {
     }
 

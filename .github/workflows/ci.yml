@@ -2,7 +2,10 @@
 #   analyzer  - ruff, mypy and pytest inside the analyzer test image
 #   backend   - Maven verify with Testcontainers (real PostgreSQL + real analyzer image)
 #   frontend  - type check and Vitest inside the frontend test image
-# Mirrors scripts/test-analyzer.ps1, test-backend.ps1 and test-frontend.ps1.
+#   e2e       - Playwright smoke test in Chromium against the Docker Compose stack
+#   api-contract (pull requests only) - API Sentinel's own CLI compares the backend
+#              contract on the base branch with the PR version and fails on breaking changes
+# The analyzer and frontend jobs run scripts/test-*.sh, the bash equivalents of the PowerShell scripts.
 name: ci
 
 on:
@@ -10,6 +13,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      backend_script:
+        description: Also run scripts/test-backend.sh (Maven inside the toolchain container)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -27,16 +35,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Build analyzer test image
-        run: docker build -f analyzer/Dockerfile --target test -t apisentinel-analyzer-test .
+      - name: Lint, type check and tests (scripts/test-analyzer.sh)
+        run: bash scripts/test-analyzer.sh
 
-      - name: Lint and type check (ruff, mypy)
-        run: >
-          docker run --rm apisentinel-analyzer-test sh -c
-          "python -m ruff check src tests && python -m ruff format --check src tests && python -m mypy"
-
-      - name: Tests (pytest)
-        run: docker run --rm apisentinel-analyzer-test
+      - name: Show the full log on failure
+        if: failure()
+        run: cat logs/analyzer-tests.txt
 
   backend:
     name: Backend (Java)
@@ -66,6 +70,7 @@ jobs:
           path: |
             backend/target/surefire-reports/
             backend/target/failsafe-reports/
+            backend/target/contract/
           if-no-files-found: ignore
 
   frontend:
@@ -75,10 +80,105 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Type check and tests (Vitest)
-        working-directory: frontend
-        run: docker build --progress=plain --target test -t apisentinel-frontend-test .
+      - name: Type check, tests and production build (scripts/test-frontend.sh)
+        run: bash scripts/test-frontend.sh
 
-      - name: Production build
-        working-directory: frontend
-        run: docker build --target runtime -t apisentinel-frontend:latest .
+      - name: Show the full log on failure
+        if: failure()
+        run: cat logs/frontend-tests.txt
+
+  scripts:
+    name: Shell scripts (shellcheck)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - run: shellcheck scripts/test-analyzer.sh scripts/test-backend.sh scripts/test-frontend.sh
+
+  backend-script:
+    name: Backend via scripts/test-backend.sh (on demand)
+    if: github.event_name == 'workflow_dispatch' && inputs.backend_script
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - run: bash scripts/test-backend.sh
+      - name: Show the end of the log on failure
+        if: failure()
+        run: tail -n 200 logs/backend-tests.txt
+
+  e2e:
+    name: Browser smoke test (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Generate throw-away secrets for this run (never committed)
+        run: |
+          {
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)"
+            echo "APISENTINEL_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')"
+            echo "APISENTINEL_INTERNAL_TOKEN=$(openssl rand -hex 32)"
+          } > .env
+
+      - name: Start the stack and wait for every health check
+        run: docker compose -f infrastructure/docker-compose.yml --env-file .env up -d --build --wait --wait-timeout 600
+
+      - name: Install Playwright and Chromium
+        working-directory: e2e
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Smoke test (register, upload, compatibility scan)
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: Upload the Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          if-no-files-found: ignore
+
+      - name: Stack logs on failure
+        if: failure()
+        run: docker compose -f infrastructure/docker-compose.yml --env-file .env logs --no-color --tail 200
+
+  api-contract:
+    name: API contract (checked by API Sentinel)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_REF: ${{ github.base_ref }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Collect the base and PR versions of the backend contract
+        id: contract
+        run: |
+          mkdir -p "$RUNNER_TEMP/contract"
+          cp contracts/backend-api.openapi.json "$RUNNER_TEMP/contract/candidate.json"
+          if git show "origin/$BASE_REF:contracts/backend-api.openapi.json" > "$RUNNER_TEMP/contract/baseline.json" 2>/dev/null; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No backend contract on $BASE_REF yet, so there is nothing to compare."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the analyzer image (it contains the apisentinel CLI)
+        if: steps.contract.outputs.present == 'true'
+        run: docker build -f analyzer/Dockerfile --target runtime -t apisentinel-analyzer:latest .
+
+      - name: Compare with apisentinel diff (fails on high or critical findings)
+        if: steps.contract.outputs.present == 'true'
+        run: >
+          docker run --rm -v "$RUNNER_TEMP/contract:/contract:ro" apisentinel-analyzer:latest
+          apisentinel diff /contract/baseline.json /contract/candidate.json --fail-on high --color never

@@ -1,6 +1,6 @@
 import { download, request } from "./client";
 import type {
-  ContractTestResult, Dashboard, Finding, Page, Policy, Project, Scan, ScanStatus, ScanType, Severity,
+  ContractTestResult, Dashboard, Finding, Page, Policy, Project, RulesResponse, Scan, ScanStatus, ScanType, Severity,
   Specification, TokenResponse, User,
 } from "./types";
 
@@ -21,10 +21,16 @@ export const authApi = {
   login: (body: { email: string; password: string }) =>
     request<TokenResponse>("/api/v1/auth/login", { method: "POST", body, anonymous: true }),
   me: () => request<User>("/api/v1/auth/me"),
+  changePassword: (body: { currentPassword: string; newPassword: string }) =>
+    request<void>("/api/v1/auth/password", { method: "POST", body }),
 };
 
 export const dashboardApi = {
   get: () => request<Dashboard>("/api/v1/dashboard"),
+};
+
+export const ruleApi = {
+  list: () => request<RulesResponse>("/api/v1/rules"),
 };
 
 export const projectApi = {
