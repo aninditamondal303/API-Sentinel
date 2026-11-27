@@ -8,14 +8,14 @@ API Sentinel compares two versions of an OpenAPI specification and tells you, be
 
 **[Live demo](https://api-sentinel-app.onrender.com/)**
 
-> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 476 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
+> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 481 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
 
 > **Status:** a complete portfolio project, deployed live on Render (frontend, backend, analyzer and database also run together locally in Docker Compose). It is **not** production-hardened. See [Limitations](#limitations).
 
 **At a glance**
 - Three services in three languages (React/TypeScript, Java/Spring Boot, Python/FastAPI) plus PostgreSQL, started with one command.
 - 73 deterministic analysis rules with severity, impact and remediation for every finding.
-- 476 automated tests (372 analyzer, 57 backend, 47 frontend); backend integration tests run against real PostgreSQL and analyzer containers.
+- 481 automated tests (372 analyzer, 57 backend, 52 frontend); backend integration tests run against real PostgreSQL and analyzer containers.
 - Security by default: secrets only in a git-ignored `.env`, per-user data isolation, internal services never exposed to the browser, strict Content-Security-Policy.
 
 ---
@@ -61,7 +61,7 @@ OpenAPI specifications already describe the contract precisely, so the compariso
 - The ZIP includes `requirements.txt` and `pytest.ini`; run it against your own environment with `pytest --base-url https://your-api.example` (or set `APISENTINEL_BASE_URL`).
 
 **Web application**
-- Registration and login (JWT), projects, specification uploads (YAML or JSON, validated before storage), scan history, filters, JSON report download and a dashboard computed from the database.
+- Registration and login (JWT), projects, specification uploads (YAML or JSON, validated before storage), scan history, filters, JSON report download, a dashboard computed from the database, and a rules reference that every finding links to.
 - Each user only ever sees their own data; another user's resources return `404`.
 - Responsive dark UI with loading, empty and error states.
 
@@ -179,7 +179,7 @@ On pull requests, CI also uses API Sentinel on itself: the `api-contract` job ru
 |---|---|---|
 | Analyzer | `.\scripts\test-analyzer.ps1` | ruff and mypy clean; **372 passed** |
 | Backend | `.\scripts\test-backend.ps1` | **57 tests, 0 failures, 0 errors, 0 skipped** (verified in CI); `BUILD SUCCESS` |
-| Frontend | `.\scripts\test-frontend.ps1` | type check clean; **47 tests passed** (12 files, verified in CI); production image built |
+| Frontend | `.\scripts\test-frontend.ps1` | type check clean; **52 tests passed** (13 files, verified in CI); production image built |
 | Full stack | `.\scripts\demo-backend.ps1` | **47 checks passed, 0 failed** |
 
 Run each with `powershell -ExecutionPolicy Bypass -File <script>`.
