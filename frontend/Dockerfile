@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Build context: the frontend/ directory.
 
-FROM node:24-alpine AS deps
+FROM node:26-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
