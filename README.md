@@ -290,7 +290,7 @@ Captured from the running Docker Compose stack using the included Orders API exa
 
 ## Limitations
 
-- **Local deployment only.** The stack runs on `127.0.0.1` over plain HTTP. There is no TLS, deployment manifest or production configuration.
+- **Free-tier hosting.** The [live demo](https://api-sentinel-app.onrender.com/) runs on free plans, deployed from [`render.yaml`](render.yaml): the frontend is a Render static site, the backend and analyzer share one 512 MB Render web service (the analyzer listens on `127.0.0.1` inside the container), and PostgreSQL is a free Neon database. An idle backend sleeps, so the first request after a pause can take about a minute, and registration is open to anyone with the link. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Locally, the Docker Compose stack still runs on `127.0.0.1` over plain HTTP.
 - **Session storage.** The JWT is kept in the browser's `sessionStorage` (one tab, cleared when it closes). The strict Content-Security-Policy reduces the risk of cross-site scripting, but it does not protect the token from malicious JavaScript that does run on the same origin: any such script can read `sessionStorage`. An httpOnly cookie would keep the token out of JavaScript's reach entirely, but it requires backend changes (issuing and reading the cookie) and CSRF protection for state-changing requests.
 - **No refresh tokens or account management.** Sessions last 60 minutes; there is no password reset, email verification or user administration.
 - **Login rate limiting is in memory**, so it resets on restart and would not work across several backend instances.
@@ -307,7 +307,6 @@ Captured from the running Docker Compose stack using the included Orders API exa
 - Team workspaces and shared projects.
 - Comparing specifications directly from a Git repository or URL.
 - Automated end-to-end browser tests (for example, Playwright).
-- Deployment configuration with TLS for a hosted demo.
 
 ## License
 
