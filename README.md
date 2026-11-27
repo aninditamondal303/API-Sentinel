@@ -184,6 +184,8 @@ On pull requests, CI also uses API Sentinel on itself: the `api-contract` job ru
 
 Run each with `powershell -ExecutionPolicy Bypass -File <script>`.
 
+On Linux or macOS, the bash equivalents run the same Docker commands: `bash scripts/test-analyzer.sh`, `bash scripts/test-backend.sh` and `bash scripts/test-frontend.sh` (logs in `logs/`). CI runs the analyzer and frontend scripts on every push.
+
 What the suites cover:
 - **Analyzer:** rule-by-rule unit tests, property-based tests (Hypothesis), real-world fixture specifications, the internal HTTP API, and a drift test that keeps `contracts/analyzer-api.openapi.json` in sync with the code.
 - **Backend:** integration tests that start a **real PostgreSQL 18 container and the real analyzer image** with Testcontainers, so Java-to-Python calls in the tests are genuine. They cover authentication and token tampering, per-user isolation, uploads, scans and persisted findings, dashboard figures checked against SQL, contract-test ZIPs, and analyzer timeouts and errors (using a small local stub server). A drift test keeps `contracts/backend-api.openapi.json` in sync with the public API; after an intentional API change, regenerate it from `backend/` with `./mvnw verify -Dtest=ApiContractDriftTest -Dapisentinel.updateContract=true`.
@@ -298,7 +300,7 @@ Captured from the running Docker Compose stack using the included Orders API exa
 - **Login rate limiting is in memory**, so it resets on restart and would not work across several backend instances.
 - **Synchronous scans.** The backend waits for the analyzer (30-second read timeout); there is no job queue.
 - **Security checks are specification-level only** and are not a substitute for penetration testing or runtime security tools.
-- **Verified on Windows 11 with Docker Desktop.** Other platforms have not been tested, and the helper scripts are PowerShell.
+- **Developed on Windows 11 with Docker Desktop.** The test suites also run on Linux in GitHub Actions, including the bash test scripts; the full-stack demo script (`demo-backend.ps1`) is PowerShell only, and macOS has not been tested.
 - **Browser coverage:** the UI was checked manually in a Chromium-based browser; there are no automated end-to-end browser tests.
 
 ## Future improvements
