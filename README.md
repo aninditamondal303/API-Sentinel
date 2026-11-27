@@ -8,14 +8,14 @@ API Sentinel compares two versions of an OpenAPI specification and tells you, be
 
 **[Live demo](https://api-sentinel-app.onrender.com/)**
 
-> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 473 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
+> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 474 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
 
 > **Status:** a complete portfolio project, deployed live on Render (frontend, backend, analyzer and database also run together locally in Docker Compose). It is **not** production-hardened. See [Limitations](#limitations).
 
 **At a glance**
 - Three services in three languages (React/TypeScript, Java/Spring Boot, Python/FastAPI) plus PostgreSQL, started with one command.
 - 73 deterministic analysis rules with severity, impact and remediation for every finding.
-- 473 automated tests (372 analyzer, 54 backend, 47 frontend); backend integration tests run against real PostgreSQL and analyzer containers.
+- 474 automated tests (372 analyzer, 55 backend, 47 frontend); backend integration tests run against real PostgreSQL and analyzer containers.
 - Security by default: secrets only in a git-ignored `.env`, per-user data isolation, internal services never exposed to the browser, strict Content-Security-Policy.
 
 ---
@@ -176,7 +176,7 @@ All three suites (analyzer, backend and frontend) also run on GitHub Actions on 
 | Component | Command | Last verified result (Windows 11, Docker Desktop) |
 |---|---|---|
 | Analyzer | `.\scripts\test-analyzer.ps1` | ruff and mypy clean; **372 passed** |
-| Backend | `.\scripts\test-backend.ps1` | **54 tests, 0 failures, 0 errors, 0 skipped**; `BUILD SUCCESS` |
+| Backend | `.\scripts\test-backend.ps1` | **55 tests, 0 failures, 0 errors, 0 skipped** (verified in CI); `BUILD SUCCESS` |
 | Frontend | `.\scripts\test-frontend.ps1` | type check clean; **47 tests passed** (12 files, verified in CI); production image built |
 | Full stack | `.\scripts\demo-backend.ps1` | **47 checks passed, 0 failed** |
 
@@ -184,7 +184,7 @@ Run each with `powershell -ExecutionPolicy Bypass -File <script>`.
 
 What the suites cover:
 - **Analyzer:** rule-by-rule unit tests, property-based tests (Hypothesis), real-world fixture specifications, the internal HTTP API, and a drift test that keeps `contracts/analyzer-api.openapi.json` in sync with the code.
-- **Backend:** integration tests that start a **real PostgreSQL 18 container and the real analyzer image** with Testcontainers, so Java-to-Python calls in the tests are genuine. They cover authentication and token tampering, per-user isolation, uploads, scans and persisted findings, dashboard figures checked against SQL, contract-test ZIPs, and analyzer timeouts and errors (using a small local stub server).
+- **Backend:** integration tests that start a **real PostgreSQL 18 container and the real analyzer image** with Testcontainers, so Java-to-Python calls in the tests are genuine. They cover authentication and token tampering, per-user isolation, uploads, scans and persisted findings, dashboard figures checked against SQL, contract-test ZIPs, and analyzer timeouts and errors (using a small local stub server). A drift test keeps `contracts/backend-api.openapi.json` in sync with the public API; after an intentional API change, regenerate it from `backend/` with `./mvnw verify -Dtest=ApiContractDriftTest -Dapisentinel.updateContract=true`.
 - **Frontend:** component and flow tests with a mocked network layer (MSW): the API client and error handling, session storage and expiry, login/registration, the dashboard's data, empty and error states, uploads, finding grouping and contract-test downloads.
 
 Before compiling, `test-backend.ps1` checks the Maven distribution pinned by the Maven Wrapper against the SHA-512 checksums published by Maven Central and apache.org (`scripts\verify-maven-dist.sh`).
@@ -229,7 +229,7 @@ On Windows with Smart App Control enabled, native Python dependencies may be blo
 ## Design decisions
 
 - **Rules live in one place.** All analysis is in the Python analyzer; the Java backend orchestrates, persists and authorizes. Even the dashboard's breaking-change total is the sum of the counts the analyzer reported, not recalculated in Java.
-- **A committed contract between services.** The analyzer's internal API is described in `contracts/analyzer-api.openapi.json`, and a test fails if the code and the contract drift apart.
+- **Committed API contracts.** The analyzer's internal API is described in `contracts/analyzer-api.openapi.json` and the public backend API in `contracts/backend-api.openapi.json`; tests fail if the code and either contract drift apart, so every API change shows up in the pull request diff.
 - **Deterministic output.** The same two specifications always produce the same findings, in the same order, with stable fingerprints, so results can be compared over time.
 - **No long transaction around a remote call.** A scan row is committed as `RUNNING` before the analyzer is called and completed or marked `FAILED` afterwards, so a slow analyzer never holds a database connection.
 - **Same-origin frontend.** nginx proxies the API, which avoids CORS and keeps the analyzer and database off the browser's network path.
@@ -258,7 +258,7 @@ API-Sentinel/
 │   ├── src/components/       layout and UI components
 │   ├── src/api/              typed API client mirroring the backend DTOs
 │   └── nginx/                server and security-header configuration
-├── contracts/                analyzer API contract (OpenAPI)
+├── contracts/                analyzer and backend API contracts (OpenAPI)
 ├── examples/                 Orders API (3 versions) and Inventory API specifications
 ├── infrastructure/           docker-compose.yml
 └── scripts/                  setup, test and demo scripts (PowerShell)

@@ -66,6 +66,7 @@ jobs:
           path: |
             backend/target/surefire-reports/
             backend/target/failsafe-reports/
+            backend/target/contract/
           if-no-files-found: ignore
 
   frontend:
