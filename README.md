@@ -297,12 +297,11 @@ Captured from the running Docker Compose stack using the included Orders API exa
 - **Synchronous scans.** The backend waits for the analyzer (30-second read timeout); there is no job queue.
 - **Security checks are specification-level only** and are not a substitute for penetration testing or runtime security tools.
 - **Verified on Windows 11 with Docker Desktop.** Other platforms have not been tested, and the helper scripts are PowerShell.
-- **No continuous integration yet.** The test results above come from local runs.
 - **Browser coverage:** the UI was checked manually in a Chromium-based browser; there are no automated end-to-end browser tests.
 
 ## Future improvements
 
-- GitHub Actions workflows running the three test suites, and a reusable action that comments compatibility results on pull requests.
+- A reusable GitHub Action that comments compatibility results on pull requests.
 - Asynchronous scans with a job queue and progress updates.
 - httpOnly cookie sessions with CSRF protection and refresh tokens.
 - Team workspaces and shared projects.
