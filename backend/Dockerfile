@@ -4,7 +4,7 @@
 # Toolchain used both for image builds and by scripts/test-backend.ps1.
 # `unzip` is required: without it the Maven Wrapper silently switches to the .tar.gz distribution,
 # whose SHA-256 differs from the pinned .zip checksum, and verification (correctly) fails.
-FROM eclipse-temurin:21-jdk AS toolchain
+FROM eclipse-temurin:25-jdk AS toolchain
 RUN apt-get update \
  && apt-get install -y --no-install-recommends unzip curl ca-certificates \
  && rm -rf /var/lib/apt/lists/*
@@ -18,7 +18,7 @@ COPY src src
 # Tests need Docker (Testcontainers) and run separately via scripts/test-backend.ps1.
 RUN sh ./mvnw -B -ntp package -DskipTests && cp target/apisentinel-backend-*.jar /build/app.jar
 
-FROM eclipse-temurin:21-jre AS runtime
+FROM eclipse-temurin:25-jre AS runtime
 # curl is used only by the container HEALTHCHECK below.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends curl \
