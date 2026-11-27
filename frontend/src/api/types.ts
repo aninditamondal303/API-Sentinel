@@ -165,3 +165,18 @@ export interface FieldIssue {
   pointer?: string;
   message: string;
 }
+
+export interface Rule {
+  id: string;
+  title: string;
+  category: string;
+  severity: Severity;
+  requiresManualReview: boolean;
+  impact: string;
+  remediation: string;
+}
+
+export interface RulesResponse {
+  rulesetVersion: string;
+  rules: Rule[];
+}
