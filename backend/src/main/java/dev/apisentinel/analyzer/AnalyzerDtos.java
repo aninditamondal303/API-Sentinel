@@ -107,6 +107,15 @@ public final class AnalyzerDtos {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    public record RuleInfo(String id, String title, String category, String severity, boolean requiresManualReview,
+            String impact, String remediation) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record RulesResult(String rulesetVersion, List<RuleInfo> rules) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Problem(String title, Integer status, String detail, String errorCode, String side,
             List<Issue> errors) {
     }

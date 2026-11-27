@@ -7,6 +7,7 @@ import dev.apisentinel.analyzer.AnalyzerDtos.ContractTestOptions;
 import dev.apisentinel.analyzer.AnalyzerDtos.ContractTestRequest;
 import dev.apisentinel.analyzer.AnalyzerDtos.ContractTestResult;
 import dev.apisentinel.analyzer.AnalyzerDtos.Problem;
+import dev.apisentinel.analyzer.AnalyzerDtos.RulesResult;
 import dev.apisentinel.analyzer.AnalyzerDtos.ScanOptions;
 import dev.apisentinel.analyzer.AnalyzerDtos.SecurityScanRequest;
 import dev.apisentinel.analyzer.AnalyzerDtos.SecurityScanResult;
@@ -96,6 +97,22 @@ public class AnalyzerClient {
         ContractTestRequest request = new ContractTestRequest(spec,
                 new ContractTestOptions(includeUnsafeMethods, baseUrl));
         return post("/internal/v1/contract-tests", request, ContractTestResult.class);
+    }
+
+    /** The analyzer's rule catalogue (id, category, severity, impact, remediation for every rule). */
+    public RulesResult rules() {
+        String path = "/internal/v1/rules";
+        return call(path, () -> restClient.get()
+                .uri(path)
+                .accept(MediaType.APPLICATION_JSON)
+                .headers(h -> {
+                    String requestId = MDC.get(RequestIdFilter.MDC_KEY);
+                    if (requestId != null) {
+                        h.set(RequestIdFilter.HEADER, requestId);
+                    }
+                })
+                .retrieve()
+                .body(RulesResult.class));
     }
 
     private <T> T post(String path, Object body, Class<T> type) {
