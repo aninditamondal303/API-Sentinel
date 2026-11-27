@@ -1,0 +1,11 @@
+{
+  "name": "apisentinel-e2e",
+  "private": true,
+  "description": "Browser smoke test for the API Sentinel stack (runs against Docker Compose on http://127.0.0.1:3000).",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}
