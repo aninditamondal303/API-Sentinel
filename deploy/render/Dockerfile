@@ -21,7 +21,7 @@ COPY backend/src src
 RUN sh ./mvnw -B -ntp package -DskipTests && cp target/apisentinel-backend-*.jar /build/app.jar
 
 # ---- analyzer build (same as analyzer/Dockerfile) -------------------------------
-FROM python:3.14-slim AS analyzer-build
+FROM python:3.15-slim AS analyzer-build
 COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /usr/local/bin/uv
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -34,7 +34,7 @@ COPY analyzer/src ./src
 RUN uv sync --locked --no-dev --no-editable
 
 # ---- runtime: Python 3.14 base + Java 21 JRE copied from the official Temurin image ----
-FROM python:3.14-slim AS runtime
+FROM python:3.15-slim AS runtime
 COPY --from=eclipse-temurin:21-jre /opt/java/openjdk /opt/java/openjdk
 COPY --from=analyzer-build /opt/venv /opt/venv
 COPY --from=backend-build /build/app.jar /app/app.jar
