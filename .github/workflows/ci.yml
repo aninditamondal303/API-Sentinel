@@ -1,0 +1,84 @@
+# Runs every test suite on each push and pull request:
+#   analyzer  - ruff, mypy and pytest inside the analyzer test image
+#   backend   - Maven verify with Testcontainers (real PostgreSQL + real analyzer image)
+#   frontend  - type check and Vitest inside the frontend test image
+# Mirrors scripts/test-analyzer.ps1, test-backend.ps1 and test-frontend.ps1.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Cancel superseded runs on pull requests only; every commit on main gets a full run.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyzer:
+    name: Analyzer (Python)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build analyzer test image
+        run: docker build -f analyzer/Dockerfile --target test -t apisentinel-analyzer-test .
+
+      - name: Lint and type check (ruff, mypy)
+        run: >
+          docker run --rm apisentinel-analyzer-test sh -c
+          "python -m ruff check src tests && python -m ruff format --check src tests && python -m mypy"
+
+      - name: Tests (pytest)
+        run: docker run --rm apisentinel-analyzer-test
+
+  backend:
+    name: Backend (Java)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build analyzer image used by the integration tests
+        run: docker build -f analyzer/Dockerfile --target runtime -t apisentinel-analyzer:latest .
+
+      - name: Tests (mvn verify with Testcontainers)
+        working-directory: backend
+        run: sh ./mvnw -B -ntp verify
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: backend-surefire-reports
+          path: |
+            backend/target/surefire-reports/
+            backend/target/failsafe-reports/
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend (React)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Type check and tests (Vitest)
+        working-directory: frontend
+        run: docker build --progress=plain --target test -t apisentinel-frontend-test .
+
+      - name: Production build
+        working-directory: frontend
+        run: docker build --target runtime -t apisentinel-frontend:latest .
