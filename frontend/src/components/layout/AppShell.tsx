@@ -1,4 +1,4 @@
-import { FolderKanban, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
+import { BookOpen, FolderKanban, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
 import { Suspense, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { useAuth } from "@/auth/AuthContext";
@@ -9,6 +9,7 @@ import { Logo } from "./Logo";
 const nav = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/app/projects", label: "Projects", icon: FolderKanban, end: false },
+  { to: "/app/rules", label: "Rules", icon: BookOpen, end: false },
 ];
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
