@@ -1,0 +1,49 @@
+# Weekly dependency update pull requests. Minor and patch updates are grouped per
+# ecosystem so there is one PR per ecosystem per week; CI checks every bump.
+# Major updates arrive as separate PRs because they may need code changes.
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+    groups:
+      maven-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: uv
+    directory: /analyzer
+    schedule:
+      interval: weekly
+    groups:
+      uv-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directories:
+      - /analyzer
+      - /backend
+      - /frontend
+      - /deploy/render
+    schedule:
+      interval: weekly
+    groups:
+      docker-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]
