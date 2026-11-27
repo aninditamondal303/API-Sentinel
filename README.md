@@ -8,14 +8,14 @@ API Sentinel compares two versions of an OpenAPI specification and tells you, be
 
 **[Live demo](https://api-sentinel-app.onrender.com/)**
 
-> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 488 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
+> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules, 488 automated tests and a Playwright browser smoke test, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
 
 > **Status:** a complete portfolio project, deployed live on Render (frontend, backend, analyzer and database also run together locally in Docker Compose). It is **not** production-hardened. See [Limitations](#limitations).
 
 **At a glance**
 - Three services in three languages (React/TypeScript, Java/Spring Boot, Python/FastAPI) plus PostgreSQL, started with one command.
 - 73 deterministic analysis rules with severity, impact and remediation for every finding.
-- 488 automated tests (372 analyzer, 61 backend, 55 frontend); backend integration tests run against real PostgreSQL and analyzer containers.
+- 488 automated tests (372 analyzer, 61 backend, 55 frontend) plus a Playwright browser smoke test; backend integration tests run against real PostgreSQL and analyzer containers.
 - Security by default: secrets only in a git-ignored `.env`, per-user data isolation, internal services never exposed to the browser, strict Content-Security-Policy.
 
 ---
@@ -173,6 +173,8 @@ Each component has a script that runs its full suite inside Docker and writes a 
 
 All three suites (analyzer, backend and frontend) also run on GitHub Actions on every push to `main` and every pull request; see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
+CI also runs a **browser smoke test** (`e2e/`, Playwright + Chromium) against the full Docker Compose stack: register, create a project, upload the Orders API baseline and breaking candidate, run a compatibility scan and check the FAIL decision. To run it locally against a running stack: `cd e2e && npm ci && npx playwright install chromium && npx playwright test`.
+
 On pull requests, CI also uses API Sentinel on itself: the `api-contract` job runs `apisentinel diff --fail-on high` on the base-branch and PR versions of `contracts/backend-api.openapi.json`, so a breaking change to the public API fails the PR.
 
 | Component | Command | Last verified result (Windows 11, Docker Desktop) |
@@ -301,7 +303,7 @@ Captured from the running Docker Compose stack using the included Orders API exa
 - **Synchronous scans.** The backend waits for the analyzer (30-second read timeout); there is no job queue.
 - **Security checks are specification-level only** and are not a substitute for penetration testing or runtime security tools.
 - **Developed on Windows 11 with Docker Desktop.** The test suites also run on Linux in GitHub Actions, including the bash test scripts; the full-stack demo script (`demo-backend.ps1`) is PowerShell only, and macOS has not been tested.
-- **Browser coverage:** the UI was checked manually in a Chromium-based browser; there are no automated end-to-end browser tests.
+- **Browser coverage:** one Playwright smoke test covers the main journey in Chromium; other pages and browsers were checked manually.
 
 ## Future improvements
 
@@ -310,7 +312,7 @@ Captured from the running Docker Compose stack using the included Orders API exa
 - httpOnly cookie sessions with CSRF protection and refresh tokens.
 - Team workspaces and shared projects.
 - Comparing specifications directly from a Git repository or URL.
-- Automated end-to-end browser tests (for example, Playwright).
+- More Playwright coverage (projects, security scans, contract tests) and other browsers.
 
 ## License
 
