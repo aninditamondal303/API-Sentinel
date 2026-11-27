@@ -2,6 +2,8 @@
 #   analyzer  - ruff, mypy and pytest inside the analyzer test image
 #   backend   - Maven verify with Testcontainers (real PostgreSQL + real analyzer image)
 #   frontend  - type check and Vitest inside the frontend test image
+#   api-contract (pull requests only) - API Sentinel's own CLI compares the backend
+#              contract on the base branch with the PR version and fails on breaking changes
 # Mirrors scripts/test-analyzer.ps1, test-backend.ps1 and test-frontend.ps1.
 name: ci
 
@@ -83,3 +85,37 @@ jobs:
       - name: Production build
         working-directory: frontend
         run: docker build --target runtime -t apisentinel-frontend:latest .
+
+  api-contract:
+    name: API contract (checked by API Sentinel)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_REF: ${{ github.base_ref }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Collect the base and PR versions of the backend contract
+        id: contract
+        run: |
+          mkdir -p "$RUNNER_TEMP/contract"
+          cp contracts/backend-api.openapi.json "$RUNNER_TEMP/contract/candidate.json"
+          if git show "origin/$BASE_REF:contracts/backend-api.openapi.json" > "$RUNNER_TEMP/contract/baseline.json" 2>/dev/null; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No backend contract on $BASE_REF yet, so there is nothing to compare."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the analyzer image (it contains the apisentinel CLI)
+        if: steps.contract.outputs.present == 'true'
+        run: docker build -f analyzer/Dockerfile --target runtime -t apisentinel-analyzer:latest .
+
+      - name: Compare with apisentinel diff (fails on high or critical findings)
+        if: steps.contract.outputs.present == 'true'
+        run: >
+          docker run --rm -v "$RUNNER_TEMP/contract:/contract:ro" apisentinel-analyzer:latest
+          apisentinel diff /contract/baseline.json /contract/candidate.json --fail-on high --color never
