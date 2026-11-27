@@ -9,7 +9,7 @@
 # The local Docker Compose stack does not use this file.
 
 # ---- backend build (same as backend/Dockerfile) --------------------------------
-FROM eclipse-temurin:21-jdk AS backend-build
+FROM eclipse-temurin:25-jdk AS backend-build
 RUN apt-get update \
  && apt-get install -y --no-install-recommends unzip curl ca-certificates \
  && rm -rf /var/lib/apt/lists/*
