@@ -1,5 +1,6 @@
 package dev.apisentinel.auth;
 
+import dev.apisentinel.auth.AuthDtos.ChangePasswordRequest;
 import dev.apisentinel.auth.AuthDtos.LoginRequest;
 import dev.apisentinel.auth.AuthDtos.RegisterRequest;
 import dev.apisentinel.auth.AuthDtos.TokenResponse;
@@ -36,6 +37,12 @@ public class AuthController {
     @PostMapping("/login")
     public TokenResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changePassword(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(CurrentUser.id(jwt), request);
     }
 
     @GetMapping("/me")

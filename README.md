@@ -8,14 +8,14 @@ API Sentinel compares two versions of an OpenAPI specification and tells you, be
 
 **[Live demo](https://api-sentinel-app.onrender.com/)**
 
-> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 481 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
+> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 488 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
 
 > **Status:** a complete portfolio project, deployed live on Render (frontend, backend, analyzer and database also run together locally in Docker Compose). It is **not** production-hardened. See [Limitations](#limitations).
 
 **At a glance**
 - Three services in three languages (React/TypeScript, Java/Spring Boot, Python/FastAPI) plus PostgreSQL, started with one command.
 - 73 deterministic analysis rules with severity, impact and remediation for every finding.
-- 481 automated tests (372 analyzer, 57 backend, 52 frontend); backend integration tests run against real PostgreSQL and analyzer containers.
+- 488 automated tests (372 analyzer, 61 backend, 55 frontend); backend integration tests run against real PostgreSQL and analyzer containers.
 - Security by default: secrets only in a git-ignored `.env`, per-user data isolation, internal services never exposed to the browser, strict Content-Security-Policy.
 
 ---
@@ -61,7 +61,7 @@ OpenAPI specifications already describe the contract precisely, so the compariso
 - The ZIP includes `requirements.txt` and `pytest.ini`; run it against your own environment with `pytest --base-url https://your-api.example` (or set `APISENTINEL_BASE_URL`).
 
 **Web application**
-- Registration and login (JWT), projects, specification uploads (YAML or JSON, validated before storage), scan history, filters, JSON report download, a dashboard computed from the database, and a rules reference that every finding links to.
+- Registration and login (JWT), projects, specification uploads (YAML or JSON, validated before storage), scan history, filters, JSON report download, a dashboard computed from the database, a rules reference that every finding links to, and password change.
 - Each user only ever sees their own data; another user's resources return `404`.
 - Responsive dark UI with loading, empty and error states.
 
@@ -178,8 +178,8 @@ On pull requests, CI also uses API Sentinel on itself: the `api-contract` job ru
 | Component | Command | Last verified result (Windows 11, Docker Desktop) |
 |---|---|---|
 | Analyzer | `.\scripts\test-analyzer.ps1` | ruff and mypy clean; **372 passed** |
-| Backend | `.\scripts\test-backend.ps1` | **57 tests, 0 failures, 0 errors, 0 skipped** (verified in CI); `BUILD SUCCESS` |
-| Frontend | `.\scripts\test-frontend.ps1` | type check clean; **52 tests passed** (13 files, verified in CI); production image built |
+| Backend | `.\scripts\test-backend.ps1` | **61 tests, 0 failures, 0 errors, 0 skipped** (verified in CI); `BUILD SUCCESS` |
+| Frontend | `.\scripts\test-frontend.ps1` | type check clean; **55 tests passed** (14 files, verified in CI); production image built |
 | Full stack | `.\scripts\demo-backend.ps1` | **47 checks passed, 0 failed** |
 
 Run each with `powershell -ExecutionPolicy Bypass -File <script>`.
@@ -294,7 +294,7 @@ Captured from the running Docker Compose stack using the included Orders API exa
 
 - **Free-tier hosting.** The [live demo](https://api-sentinel-app.onrender.com/) runs on free plans, deployed from [`render.yaml`](render.yaml): the frontend is a Render static site, the backend and analyzer share one 512 MB Render web service (the analyzer listens on `127.0.0.1` inside the container), and PostgreSQL is a free Neon database. An idle backend sleeps, so the first request after a pause can take about a minute, and registration is open to anyone with the link. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Locally, the Docker Compose stack still runs on `127.0.0.1` over plain HTTP.
 - **Session storage.** The JWT is kept in the browser's `sessionStorage` (one tab, cleared when it closes). The strict Content-Security-Policy reduces the risk of cross-site scripting, but it does not protect the token from malicious JavaScript that does run on the same origin: any such script can read `sessionStorage`. An httpOnly cookie would keep the token out of JavaScript's reach entirely, but it requires backend changes (issuing and reading the cookie) and CSRF protection for state-changing requests.
-- **No refresh tokens or account management.** Sessions last 60 minutes; there is no password reset, email verification or user administration.
+- **Limited account management.** Signed-in users can change their password, but there are no refresh tokens, password reset, email verification or user administration. Sessions last 60 minutes, and tokens issued before a password change stay valid until they expire.
 - **Login rate limiting is in memory**, so it resets on restart and would not work across several backend instances.
 - **Synchronous scans.** The backend waits for the analyzer (30-second read timeout); there is no job queue.
 - **Security checks are specification-level only** and are not a substitute for penetration testing or runtime security tools.

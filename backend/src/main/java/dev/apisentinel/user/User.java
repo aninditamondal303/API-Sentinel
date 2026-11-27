@@ -49,6 +49,11 @@ public class User {
         return passwordHash;
     }
 
+    /** Replaces the stored hash; the caller has already checked the current password. */
+    public void changePasswordHash(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
+    }
+
     public String getDisplayName() {
         return displayName;
     }

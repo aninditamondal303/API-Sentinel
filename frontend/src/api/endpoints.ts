@@ -21,6 +21,8 @@ export const authApi = {
   login: (body: { email: string; password: string }) =>
     request<TokenResponse>("/api/v1/auth/login", { method: "POST", body, anonymous: true }),
   me: () => request<User>("/api/v1/auth/me"),
+  changePassword: (body: { currentPassword: string; newPassword: string }) =>
+    request<void>("/api/v1/auth/password", { method: "POST", body }),
 };
 
 export const dashboardApi = {
