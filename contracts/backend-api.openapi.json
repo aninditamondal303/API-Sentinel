@@ -431,6 +431,46 @@
         "required" : [ "displayName", "email", "password" ],
         "type" : "object"
       },
+      "RuleInfo" : {
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "impact" : {
+            "type" : "string"
+          },
+          "remediation" : {
+            "type" : "string"
+          },
+          "requiresManualReview" : {
+            "type" : "boolean"
+          },
+          "severity" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "RulesResult" : {
+        "properties" : {
+          "rules" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RuleInfo"
+            },
+            "type" : "array"
+          },
+          "rulesetVersion" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "ScanCounts" : {
         "properties" : {
           "compatibility" : {
@@ -1061,7 +1101,7 @@
     },
     "/api/v1/projects/{projectId}/scans" : {
       "get" : {
-        "operationId" : "list_2",
+        "operationId" : "list_3",
         "parameters" : [ {
           "in" : "path",
           "name" : "projectId",
@@ -1637,6 +1677,25 @@
           }
         },
         "tags" : [ "Contract tests" ]
+      }
+    },
+    "/api/v1/rules" : {
+      "get" : {
+        "operationId" : "list_2",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RulesResult"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "List every analysis rule with its category, severity, impact and remediation",
+        "tags" : [ "Rules" ]
       }
     }
   },
