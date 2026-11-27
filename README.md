@@ -1,5 +1,7 @@
 # API Sentinel
 
+[![CI](https://github.com/aninditamondal303/API-Sentinel/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/aninditamondal303/API-Sentinel/actions/workflows/ci.yml)
+
 **Catch breaking changes before they break production.**
 
 API Sentinel compares two versions of an OpenAPI specification and tells you, before you release, which changes would break existing clients. It also reviews a single specification for security hygiene problems and generates a runnable `pytest` contract-test suite from it. Every result is stored per project, so a team has a history of what changed between API versions and why a release passed or failed.
@@ -173,6 +175,8 @@ docker compose -f infrastructure\docker-compose.yml --env-file .env down -v
 ## Testing
 
 Each component has a script that runs its full suite inside Docker and writes a log to `logs\`.
+
+All three suites (analyzer, backend and frontend) also run on GitHub Actions on every push to `main` and every pull request; see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 | Component | Command | Last verified result (Windows 11, Docker Desktop) |
 |---|---|---|
