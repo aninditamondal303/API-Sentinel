@@ -4,16 +4,11 @@
 
 API Sentinel compares two versions of an OpenAPI specification and tells you, before you release, which changes would break existing clients. It also reviews a single specification for security hygiene problems and generates a runnable `pytest` contract-test suite from it. Every result is stored per project, so a team has a history of what changed between API versions and why a release passed or failed.
 
-![Java 21](https://img.shields.io/badge/Java-21-orange)
-![Spring Boot 4.2](https://img.shields.io/badge/Spring%20Boot-4.2-6DB33F)
-![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.165-009688)
-![React 19](https://img.shields.io/badge/React-19-61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-7.0-3178C6)
-![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-336791)
-![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED)
+**[Live demo](https://api-sentinel-app.onrender.com/)**
 
-> **Status:** a complete, locally verified portfolio project (frontend, backend, analyzer and database running together in Docker Compose). It is **not** production-hardened. See [Limitations](#limitations).
+> **For recruiters:** a full-stack system in three languages: React, a Spring Boot REST API with JWT and Flyway, and a Python FastAPI analysis service, with PostgreSQL, all in Docker Compose. 73 deterministic rules and 469 automated tests, including Testcontainers integration tests against real PostgreSQL and the real analyzer container.
+
+> **Status:** a complete portfolio project, deployed live on Render (frontend, backend, analyzer and database also run together locally in Docker Compose). It is **not** production-hardened. See [Limitations](#limitations).
 
 **At a glance**
 - Three services in three languages (React/TypeScript, Java/Spring Boot, Python/FastAPI) plus PostgreSQL, started with one command.
@@ -310,6 +305,10 @@ Captured from the running Docker Compose stack using the included Orders API exa
 - Comparing specifications directly from a Git repository or URL.
 - Automated end-to-end browser tests (for example, Playwright).
 - Deployment configuration with TLS for a hosted demo.
+
+## License
+
+MIT (see [LICENSE](LICENSE)).
 
 ---
 
